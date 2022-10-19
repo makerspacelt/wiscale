@@ -13,7 +13,8 @@ struct globalConfig {
     float scale_zero = 185000;
     float scale_cal = 402.80;
     int scale_gain = 32;
-    const char* name = (char *)"noname";
+    int led_pin = 2;
+    const char* name = (char *)"mate-scale-stage";
 };
 
 struct globalState {

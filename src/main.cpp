@@ -22,7 +22,7 @@ DallasTemperature sensors(&oneWire);
 Ticker timer;
 
 void initScale() {
-    scale.begin(DOUT, CLK,config.gain);
+    scale.begin(DOUT, CLK,config.scale_gain);
     scale.power_up();
 
     scale.set_scale(config.scale_cal);
@@ -46,6 +46,10 @@ void readBattery() {
     //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)
     state.battery = map(analogRead(BAT), 0, 1024, 0, config.battery_range)/1000.0;
 }
+void readTemperature(){
+      sensors.requestTemperatures(); // Send the command to get temperatures
+      state.temperature= sensors.getTempCByIndex(0);
+}
 void selfDestruct() {
     Serial.println("Killing power...");
     pinMode(MCU_DONE_PIN, OUTPUT);
@@ -58,6 +62,7 @@ void selfDestruct() {
 
 void setup() {
     pinMode(D0,INPUT); // Workaround for using wrong pin.
+    pinMode(config.led_pin,OUTPUT);
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
