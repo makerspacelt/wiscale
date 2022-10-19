@@ -14,7 +14,7 @@ struct globalConfig {
     float scale_cal = 402.80;
     int scale_gain = 32;
     int led_pin = 2;
-    const char* name = (char *)"mate-scale-stage";
+    const char* name = (char *)"ESP-D4EFA3";
 };
 
 struct globalState {
