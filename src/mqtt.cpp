@@ -8,7 +8,7 @@ PubSubClient mqtt(espClient);
 void setupMqtt()
 {
     String clientId = WiFi.hostname();
-    mqtt.setServer("broker.lan", 1883);
+    mqtt.setServer("acs.lan", 1883);
     mqtt.setCallback(configCallback);
     mqtt.connect(clientId.c_str());
     mqtt.subscribe((char*)("config/"+clientId).c_str(), 1);
