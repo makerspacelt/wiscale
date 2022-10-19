@@ -2,16 +2,27 @@
 #include "Ticker.h"
 #include "HX711.h"
 #include "mqtt.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-#define DOUT  D4
-#define CLK  D3
+#define DOUT  4 //D2
+#define CLK  5 //D1
 HX711 scale;
-#define DONE  D6
+#define MCU_DONE_PIN  12 //D6
+#define CHARGING 13 //D7
+#define BAT 17 // A0
+#define ONE_WIRE_BUS 14 //D5
+
+// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
+OneWire oneWire(ONE_WIRE_BUS);
+
+// Pass our oneWire reference to Dallas Temperature.
+DallasTemperature sensors(&oneWire);
 
 Ticker timer;
 
 void initScale() {
-    scale.begin(DOUT, CLK);
+    scale.begin(DOUT, CLK,config.gain);
     scale.power_up();
 
     scale.set_scale(config.scale_cal);
@@ -33,12 +44,12 @@ void readScale() {
 }
 void readBattery() {
     //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)
-    state.battery = map(analogRead(A0), 0, 1024, 0, config.battery_range)/1000.0;
+    state.battery = map(analogRead(BAT), 0, 1024, 0, config.battery_range)/1000.0;
 }
 void selfDestruct() {
     Serial.println("Killing power...");
-    pinMode(DONE, OUTPUT);
-    digitalWrite(DONE, HIGH);
+    pinMode(MCU_DONE_PIN, OUTPUT);
+    digitalWrite(MCU_DONE_PIN, HIGH);
     delay(100);
     Serial.println("Going back to sleep.");
     ESP.deepSleep(60e6);
@@ -46,13 +57,17 @@ void selfDestruct() {
 // ===============================================
 
 void setup() {
+    pinMode(D0,INPUT); // Workaround for using wrong pin.
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
     timer.attach(EXECUTION_TIMEOUT, selfDestruct);
-    pinMode(D6, OUTPUT);
-    digitalWrite(D6, LOW);
+    pinMode(MCU_DONE_PIN, OUTPUT);
+    digitalWrite(MCU_DONE_PIN, LOW);
 
+    // Start up tempreture
+    sensors.begin();
+    
     initWifi();
     initScale();
  }
@@ -80,7 +95,7 @@ void loop() {
     readScale();
     readBattery();
 
-    Serial.printf("Sending message: %.3fg; %.3fV\n", state.grams, state.battery);
+    Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", state.grams, state.battery, state.temperature);
     sendMessage();
     scale.power_down();
 

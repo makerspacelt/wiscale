@@ -12,12 +12,15 @@ struct globalConfig {
     float piece_grams = 85.0;
     float scale_zero = 185000;
     float scale_cal = 402.80;
+    int scale_gain = 32;
     const char* name = (char *)"noname";
 };
 
 struct globalState {
     float grams = 0;
     float battery = 0;
+    float temperature = 0;
+    int charging = 0;
     int pieces = 0;
     int configured = 0;
 };
