@@ -14,7 +14,7 @@ void setupMqtt()
     mqtt.connect(clientId.c_str());
     Serial.println("My ID");
     Serial.println(clientId);
-    mqtt.subscribe("config/ESP-D4EFA3");//(char*)("config/"+clientId).c_str(), 1);
+    mqtt.subscribe((char*)("config/"+clientId).c_str(), 1);
 }
 
 void loopMqtt() {
