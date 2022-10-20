@@ -45,6 +45,29 @@ void sendMessage()
     }
 }
 
+void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc){
+    
+   JsonArray array=doc["gpio"].as<JsonArray>();
+
+   if (array.size()>MAX_GPIO_PINS)
+   {
+    Serial.println("Too many pins provided in GPIO config!");
+    return;
+   }
+   
+   for (int i = 0; i < array.size(); i++)
+   {
+     uint8_t pin=array; // todo figure out how to get key
+     Config.gpio->name=array[i]["name"];
+     Config.gpio->defaultValue=array[i]["deefault"];
+     Config.gpio->inverted=array[i]["invert"];
+     Config.gpio->mode=array[i]["mode"];
+     Config.gpio->pin=pin;          
+   }  
+    
+}
+
+
 void configCallback(char* topic, byte* payload, unsigned int length) {
     Serial.println("Received from topic");
     StaticJsonDocument<JSON_BUFFER_SIZE> doc;
@@ -58,6 +81,7 @@ void configCallback(char* topic, byte* payload, unsigned int length) {
     Config.name = doc["host"];
 
     // Get gpio config
+    ParseGPIOConfig(doc);
 
     Config.battery_range = doc["battery_range"];
     Config.scale_zero = doc["scale_zero"];
