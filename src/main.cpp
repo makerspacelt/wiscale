@@ -22,11 +22,11 @@ DallasTemperature sensors(&oneWire);
 Ticker timer;
 
 void initScale() {
-    scale.begin(DOUT, CLK,Config.scale_gain);
+    scale.begin(DOUT, CLK,Config.scale.gain);
     scale.power_up();
 
-    scale.set_scale(Config.scale_cal);
-    scale.set_offset(Config.scale_zero);
+    scale.set_scale(Config.scale.multi);
+    scale.set_offset(Config.scale.multi);
 }
 void initWifi() {
     //Serial.setDebugOutput(true);
@@ -62,7 +62,6 @@ void selfDestruct() {
 
 void setup() {
     pinMode(D0,INPUT); // Workaround for using wrong pin.
-    pinMode(Config.led_pin,OUTPUT);
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
