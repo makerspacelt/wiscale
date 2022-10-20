@@ -109,8 +109,7 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     parseHx711Config(doc);
    
     parseDs18b20Config(doc);
-    
-    Config.battery_range = doc["battery_range"];
-    Config.piece_grams = doc["piece_grams"];
-    State.configured = 1;
+
+    Config.piece_grams = doc["piece_grams"];// todo add this to config.
+    State.configured = 1; 
 }
