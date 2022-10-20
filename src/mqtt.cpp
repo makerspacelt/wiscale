@@ -60,6 +60,15 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
     }
 }
 
+void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+{
+    JsonObject json = doc["hx711"].as<JsonArray>()[0];
+    Config.scale.name = json["name"];
+    Config.scale.pin_sck = json["pin_sck"];
+    Config.scale.pin_dt = json["pin_dt"];
+    Config.scale.gain = json["gain"];
+    Config.scale.offset = json["offset"];
+    Config.scale.multi = json["multi"];
 void configCallback(char *topic, byte *payload, unsigned int length)
 {
     Serial.println("Received from topic");
@@ -77,11 +86,9 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     // Get gpio config
     ParseGPIOConfig(doc);
 
+    parseHx711Config(doc);
+
     Config.battery_range = doc["battery_range"];
-    Config.scale_zero = doc["scale_zero"];
-    Config.scale_cal = doc["scale_cal"];
-    Config.scale_gain = doc["scale_gain"];
     Config.piece_grams = doc["piece_grams"];
-    Config.led_pin = doc["led"];
     State.configured = 1;
 }
