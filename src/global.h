@@ -47,7 +47,7 @@ struct Ds18b20Config
     float multi = 1;
 };
 
-struct globalConfig
+struct GlobalConfig
 {
     int battery_range = 4860;
     float piece_grams = 85.0;
@@ -58,7 +58,7 @@ struct globalConfig
     Ds18b20Config temperature = {};
 };
 
-struct globalState
+struct GlobalState
 {
     float grams = 0;
     float battery = 0;
@@ -68,7 +68,7 @@ struct globalState
     int configured = 0;
 };
 
-extern globalState state;
-extern globalConfig config;
+extern GlobalState State;
+extern GlobalConfig Config;
 
 #endif // GLOBAL_H

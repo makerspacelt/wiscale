@@ -1,5 +1,5 @@
 #include "global.h"
 
-globalState state;
-globalConfig config;
+GlobalState State;
+GlobalConfig Config;
 

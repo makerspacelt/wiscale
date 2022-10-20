@@ -22,11 +22,11 @@ DallasTemperature sensors(&oneWire);
 Ticker timer;
 
 void initScale() {
-    scale.begin(DOUT, CLK,config.scale_gain);
+    scale.begin(DOUT, CLK,Config.scale_gain);
     scale.power_up();
 
-    scale.set_scale(config.scale_cal);
-    scale.set_offset(config.scale_zero);
+    scale.set_scale(Config.scale_cal);
+    scale.set_offset(Config.scale_zero);
 }
 void initWifi() {
     //Serial.setDebugOutput(true);
@@ -39,16 +39,16 @@ void initWifi() {
 }
 
 void readScale() {
-    state.grams = scale.get_units(30);
-    state.pieces = ((config.piece_grams/2)+state.grams)/config.piece_grams;
+    State.grams = scale.get_units(30);
+    State.pieces = ((Config.piece_grams/2)+State.grams)/Config.piece_grams;
 }
 void readBattery() {
     //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)
-    state.battery = map(analogRead(BAT), 0, 1024, 0, config.battery_range)/1000.0;
+    State.battery = map(analogRead(BAT), 0, 1024, 0, Config.battery_range)/1000.0;
 }
 void readTemperature(){
       sensors.requestTemperatures(); // Send the command to get temperatures
-      state.temperature= sensors.getTempCByIndex(0);
+      State.temperature= sensors.getTempCByIndex(0);
 }
 void selfDestruct() {
     Serial.println("Killing power...");
@@ -62,7 +62,7 @@ void selfDestruct() {
 
 void setup() {
     pinMode(D0,INPUT); // Workaround for using wrong pin.
-    pinMode(config.led_pin,OUTPUT);
+    pinMode(Config.led_pin,OUTPUT);
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
@@ -90,7 +90,7 @@ void loop() {
     setupMqtt();
 
     Serial.print("Waiting for configuration: ");
-    while ( state.configured == 0 ) {
+    while ( State.configured == 0 ) {
         delay(10);
         loopMqtt();
         Serial.print(".");
@@ -100,7 +100,7 @@ void loop() {
     readScale();
     readBattery();
 
-    Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", state.grams, state.battery, state.temperature);
+    Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", State.grams, State.battery, State.temperature);
     sendMessage();
     scale.power_down();
 
