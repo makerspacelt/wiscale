@@ -47,7 +47,7 @@ void sendMessage()
 
 void configCallback(char* topic, byte* payload, unsigned int length) {
     Serial.println("Received from topic");
-    StaticJsonDocument<2048> doc;
+    StaticJsonDocument<JSON_BUFFER_SIZE> doc;
     DeserializationError error = deserializeJson(doc, payload);
     if (error) {
         Serial.print(F("deserializeJson() failed: "));
