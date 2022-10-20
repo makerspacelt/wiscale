@@ -60,15 +60,35 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
     }
 }
 
+/// @brief Gets first JSon object from array. Can be used  only if there is a single element.
+/// @param deviceName
+/// @param doc
+/// @return
+JsonObject getDeviceConfig(char *deviceName, StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+{
+    JsonObject json = doc[deviceName].as<JsonArray>()[0];
+    return json;
+}
+
 void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
-    JsonObject json = doc["hx711"].as<JsonArray>()[0];
+    JsonObject json = getDeviceConfig("hx711",doc);
     Config.scale.name = json["name"];
     Config.scale.pin_sck = json["pin_sck"];
     Config.scale.pin_dt = json["pin_dt"];
-    Config.scale.gain = json["gain"];
+    Config.scale.gain = json["gain"]; 
     Config.scale.offset = json["offset"];
     Config.scale.multi = json["multi"];
+}
+void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+{
+    JsonObject json =getDeviceConfig("ds18b20",doc);
+    Config.temperature.name = json["name"];
+    Config.temperature.pin = json["pin"];
+    Config.temperature.offset = json["offset"];
+    Config.temperature.multi = json["multi"];
+}
+
 void configCallback(char *topic, byte *payload, unsigned int length)
 {
     Serial.println("Received from topic");
@@ -87,7 +107,9 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     ParseGPIOConfig(doc);
 
     parseHx711Config(doc);
-
+   
+    parseDs18b20Config(doc);
+    
     Config.battery_range = doc["battery_range"];
     Config.piece_grams = doc["piece_grams"];
     State.configured = 1;
