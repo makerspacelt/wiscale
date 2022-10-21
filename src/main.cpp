@@ -76,10 +76,23 @@ void setup() {
 
  }
 void ReconfigureGPIO(){
-
+    for (uint32_t i = 0; i < MAX_GPIO_PINS; i++)
+    {
+        if (Config.gpio[i].configured)
+        {
+          pinMode(Config.gpio[i].pin,Config.gpio[i].mode);
+        }
+    }
 }
+
 void ReconfigureADC(){
-    
+    for (uint32_t i = 0; i < MAX_ADC_PINS; i++)
+    {
+        if (Config.adc[i].configured)
+        {
+          pinMode(Config.adc[i].pin,INPUT);
+        }
+    }
 }
 void ReconfigureTemperature(){
         // Start up tempreture
@@ -89,6 +102,20 @@ void Reconfigure(){
     Serial.println("Reconfiguring");
     ReconfigureTemperature();
     initScale();
+}
+void PowerDown(){
+    scale.power_down();
+    Serial.print("Shutting down: ");
+    for (int i=0; i<10; i++) {
+        loopMqtt();
+        delay(10);
+        Serial.print(".");
+    }
+    Serial.println();
+
+    destroyMqtt();
+    delay(10);
+    selfDestruct();
 }
 void loop() {
 
@@ -112,20 +139,10 @@ void loop() {
 
     readScale();
     readBattery();
+    readTemperature();
 
     Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", State.grams, State.battery, State.temperature);
     sendMessage();
-    scale.power_down();
 
-    Serial.print("Shutting down: ");
-    for (int i=0; i<10; i++) {
-        loopMqtt();
-        delay(10);
-        Serial.print(".");
-    }
-    Serial.println();
-
-    destroyMqtt();
-    delay(10);
-    selfDestruct();
+    PowerDown();
 }
