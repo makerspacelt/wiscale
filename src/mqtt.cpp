@@ -40,6 +40,7 @@ void sendMessage()
 
 void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
+    Serial.println("Parsing GPIO config");
     JsonArray array = doc["gpio"].as<JsonArray>();
 
     if (array.size() > MAX_GPIO_PINS)
@@ -48,17 +49,19 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
         return;
     }
 
-    for (int i = 0; i < array.size(); i++)
+    for (uint i = 0; i < array.size(); i++)
     {
-        Config.gpio[i]->name = array[i]["name"];
-        Config.gpio[i]->defaultValue = array[i]["default"];
-        Config.gpio[i]->inverted = array[i]["invert"];
-        Config.gpio[i]->mode = array[i]["mode"];
-        Config.gpio[i]->pin = array[i]["pin"];
+        Config.gpio[i].name = array[i]["name"];
+        Config.gpio[i].defaultValue = array[i]["default"];
+        Config.gpio[i].inverted = array[i]["invert"];
+        Config.gpio[i].mode = array[i]["mode"];
+        Config.gpio[i].pin = array[i]["pin"];
+        Config.gpio[i].configured = 1;
     }
 }
 void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
+    Serial.println("Parsing ADC config");
     JsonArray array = doc["adc"].as<JsonArray>();
 
     if (array.size() > MAX_ADC_PINS)
@@ -67,13 +70,14 @@ void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
         return;
     }
 
-    for (int i = 0; i < array.size(); i++)
+    for (uint i = 0; i < array.size(); i++)
     {
-        Config.adc[i]->name = array[i]["name"];
-        Config.adc[i]->readings = array[i]["readings"];
-        Config.adc[i]->offset = array[i]["offset"];
-        Config.adc[i]->multi = array[i]["multi"];
-        Config.adc[i]->pin = array[i]["pin"];
+        Config.adc[i].name = array[i]["name"];
+        Config.adc[i].readingsForMean = array[i]["readings"];
+        Config.adc[i].offset = array[i]["offset"];
+        Config.adc[i].multiplier = array[i]["multi"];
+        Config.adc[i].pin = array[i]["pin"];
+        Config.adc[i].configured = 1;
     }
 }
 /// @brief Gets first JSon object from array. Can be used  only if there is a single element.
@@ -88,7 +92,10 @@ JsonObject getDeviceConfig(char *deviceName, StaticJsonDocument<JSON_BUFFER_SIZE
 
 void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
-    JsonObject json = getDeviceConfig("hx711",doc);
+    Serial.println("Parsing scale sensor config");
+    JsonArray array = doc["hx711"].as<JsonArray>();
+    JsonObject json = array[0]; // todo parse multiple scales
+
     Config.scale.name = json["name"];
     Config.scale.pin_sck = json["pin_sck"];
     Config.scale.pin_dt = json["pin_dt"];
@@ -98,7 +105,10 @@ void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 }
 void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
-    JsonObject json =getDeviceConfig("ds18b20",doc);
+    Serial.println("Parsing tempreture sensor config");
+    JsonArray array = doc["ds18b20"].as<JsonArray>();
+    JsonObject json = array[0]; // todo parse multiple temp sensors
+
     Config.temperature.name = json["name"];
     Config.temperature.pin = json["pin"];
     Config.temperature.offset = json["offset"];
@@ -122,7 +132,7 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     // Get gpio config
     ParseGPIOConfig(doc);
 
-    ParseADConfig(doc);
+    ParseADCConfig(doc);
 
     parseHx711Config(doc);
    
