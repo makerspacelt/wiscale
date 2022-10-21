@@ -9,7 +9,7 @@ void initScale()
 	scale.power_up();
 
 	scale.set_scale(Config.scale.multi);
-	scale.set_offset(Config.scale.multi);
+	scale.set_offset(Config.scale.offset);
 }
 void readScale()
 {
