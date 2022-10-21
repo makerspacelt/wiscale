@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Ticker.h"
 #include "mqtt.h"
+#include "power.h"
 #include "adc.h"
 
 #include "gpio.h"
@@ -26,16 +27,6 @@ void initWifi() {
     #endif
 }
 
-
-
-void selfDestruct() {
-    Serial.println("Killing power...");
-    pinMode(MCU_DONE_PIN, OUTPUT);
-    digitalWrite(MCU_DONE_PIN, HIGH);
-    delay(100);
-    Serial.println("Going back to sleep.");
-    ESP.deepSleep(60e6);
-}
 // ===============================================
 
 void setup() {

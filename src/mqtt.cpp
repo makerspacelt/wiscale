@@ -1,4 +1,5 @@
 #include "mqtt.h"
+#include "power.h"
 #include "ArduinoJson.h"
 
 WiFiClient espClient;
@@ -117,6 +118,10 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
 void configCallback(char *topic, byte *payload, unsigned int length)
 {
+    if(State.configured == 1){
+        Serial.println("New config received. Restart");
+        restart();
+    }
     Serial.println("Received from topic");
     StaticJsonDocument<JSON_BUFFER_SIZE> doc;
     DeserializationError error = deserializeJson(doc, payload);
