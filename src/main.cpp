@@ -5,6 +5,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#include "gpio.h"
 #define DOUT  4 //D2
 #define CLK  5 //D1
 HX711 scale;
@@ -75,15 +76,7 @@ void setup() {
     initWifi();
 
  }
-void ReconfigureGPIO(){
-    for (uint32_t i = 0; i < MAX_GPIO_PINS; i++)
-    {
-        if (Config.gpio[i].configured)
-        {
-          pinMode(Config.gpio[i].pin,Config.gpio[i].mode);
-        }
-    }
-}
+
 
 void ReconfigureADC(){
     for (uint32_t i = 0; i < MAX_ADC_PINS; i++)
