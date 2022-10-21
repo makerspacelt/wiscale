@@ -67,14 +67,25 @@ void setup() {
     timer.attach(EXECUTION_TIMEOUT, selfDestruct);
     pinMode(MCU_DONE_PIN, OUTPUT);
     digitalWrite(MCU_DONE_PIN, LOW);
-
-    // Start up tempreture
-    sensors.begin();
     
     initWifi();
-    initScale();
- }
 
+ }
+void ReconfigureGPIO(){
+
+}
+void ReconfigureADC(){
+    
+}
+void ReconfigureTemperature(){
+        // Start up tempreture
+    sensors.begin();
+}
+void Reconfigure(){
+    Serial.println("Reconfiguring");
+    ReconfigureTemperature();
+    initScale();
+}
 void loop() {
 
     Serial.print("Wifi connecting: ");
@@ -92,8 +103,8 @@ void loop() {
         delay(10);
         loopMqtt();
         Serial.print(".");
-    }
-    Serial.println();
+    }    
+    Reconfigure();
 
     readScale();
     readBattery();
