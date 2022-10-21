@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "power.h"
 #define MCU_DONE_PIN  12 //D6
 
 void selfDestruct() {
@@ -11,6 +12,6 @@ void selfDestruct() {
 }
 
 void restart(){
-    Serial1.println("ESP restart initiated.");
+    Serial.println("ESP restart initiated.");
     ESP.restart();
 }
