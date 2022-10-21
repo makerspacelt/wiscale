@@ -1,23 +1,17 @@
 #include <Arduino.h>
 #include "Ticker.h"
 #include "mqtt.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include "adc.h"
 
 #include "gpio.h"
 #include "scale.h"
+#include "temperature.h"
 
 #define MCU_DONE_PIN  12 //D6
 #define CHARGING 13 //D7
 #define BAT 17 // A0
-#define ONE_WIRE_BUS 14 //D5
 
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(ONE_WIRE_BUS);
 
-// Pass our oneWire reference to Dallas Temperature.
-DallasTemperature sensors(&oneWire);
 
 Ticker timer;
 
@@ -33,10 +27,7 @@ void initWifi() {
 }
 
 
-void readTemperature(){
-      sensors.requestTemperatures(); // Send the command to get temperatures
-      State.temperature= sensors.getTempCByIndex(0);
-}
+
 void selfDestruct() {
     Serial.println("Killing power...");
     pinMode(MCU_DONE_PIN, OUTPUT);
@@ -61,10 +52,7 @@ void setup() {
  }
 
 
-void ReconfigureTemperature(){
-        // Start up tempreture
-    sensors.begin();
-}
+
 void Reconfigure(){
     Serial.println("Reconfiguring");
     ReconfigureTemperature();
