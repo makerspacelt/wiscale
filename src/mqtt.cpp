@@ -40,7 +40,6 @@ void sendMessage()
 
 void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
-
     JsonArray array = doc["gpio"].as<JsonArray>();
 
     if (array.size() > MAX_GPIO_PINS)
@@ -51,15 +50,32 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
     for (int i = 0; i < array.size(); i++)
     {
-        uint8_t pin = array; // todo figure out how to get key
-        Config.gpio->name = array[i]["name"];
-        Config.gpio->defaultValue = array[i]["deefault"];
-        Config.gpio->inverted = array[i]["invert"];
-        Config.gpio->mode = array[i]["mode"];
-        Config.gpio->pin = pin;
+        Config.gpio[i]->name = array[i]["name"];
+        Config.gpio[i]->defaultValue = array[i]["default"];
+        Config.gpio[i]->inverted = array[i]["invert"];
+        Config.gpio[i]->mode = array[i]["mode"];
+        Config.gpio[i]->pin = array[i]["pin"];
     }
 }
+void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+{
+    JsonArray array = doc["adc"].as<JsonArray>();
 
+    if (array.size() > MAX_ADC_PINS)
+    {
+        Serial.println("Too many pins provided in ADC config!");
+        return;
+    }
+
+    for (int i = 0; i < array.size(); i++)
+    {
+        Config.adc[i]->name = array[i]["name"];
+        Config.adc[i]->readings = array[i]["readings"];
+        Config.adc[i]->offset = array[i]["offset"];
+        Config.adc[i]->multi = array[i]["multi"];
+        Config.adc[i]->pin = array[i]["pin"];
+    }
+}
 /// @brief Gets first JSon object from array. Can be used  only if there is a single element.
 /// @param deviceName
 /// @param doc
@@ -105,6 +121,8 @@ void configCallback(char *topic, byte *payload, unsigned int length)
 
     // Get gpio config
     ParseGPIOConfig(doc);
+
+    ParseADConfig(doc);
 
     parseHx711Config(doc);
    

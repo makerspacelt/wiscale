@@ -18,7 +18,6 @@
     "adc": [{
         "pin": 0,
         "name": "battery",
-        "mode": "input",
         "readings": 10,
         "offset": 0,
         "multi": 0.0047460937
