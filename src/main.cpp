@@ -1,15 +1,13 @@
 #include <Arduino.h>
 #include "Ticker.h"
-#include "HX711.h"
 #include "mqtt.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "adc.h"
 
 #include "gpio.h"
-#define DOUT  4 //D2
-#define CLK  5 //D1
-HX711 scale;
+#include "scale.h"
+
 #define MCU_DONE_PIN  12 //D6
 #define CHARGING 13 //D7
 #define BAT 17 // A0
@@ -23,17 +21,7 @@ DallasTemperature sensors(&oneWire);
 
 Ticker timer;
 
-void initScale() {
-    scale.begin(
-        Config.scale.pin_dt, 
-        Config.scale.pin_sck,
-        Config.scale.gain
-        );
-    scale.power_up();
 
-    scale.set_scale(Config.scale.multi);
-    scale.set_offset(Config.scale.multi);
-}
 void initWifi() {
     //Serial.setDebugOutput(true);
     //system_phy_set_powerup_option(3);
@@ -44,9 +32,6 @@ void initWifi() {
     #endif
 }
 
-void readScale() {
-    State.grams = scale.get_units(30);
-}
 
 void readTemperature(){
       sensors.requestTemperatures(); // Send the command to get temperatures
@@ -86,7 +71,7 @@ void Reconfigure(){
     initScale();
 }
 void PowerDown(){
-    scale.power_down();
+    powerDownScale();
     Serial.print("Shutting down: ");
     for (int i=0; i<10; i++) {
         loopMqtt();
