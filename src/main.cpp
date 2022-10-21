@@ -40,7 +40,6 @@ void initWifi() {
 
 void readScale() {
     State.grams = scale.get_units(30);
-    State.pieces = ((Config.piece_grams/2)+State.grams)/Config.piece_grams;
 }
 void readBattery() {
     //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)

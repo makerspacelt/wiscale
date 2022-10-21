@@ -110,6 +110,5 @@ void configCallback(char *topic, byte *payload, unsigned int length)
    
     parseDs18b20Config(doc);
 
-    Config.piece_grams = doc["piece_grams"];// todo add this to config.
     State.configured = 1; 
 }

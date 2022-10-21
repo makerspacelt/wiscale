@@ -51,7 +51,6 @@ struct Ds18b20Config
 struct GlobalConfig
 {
     int battery_range = 4860;
-    float piece_grams = 85.0;
     const char *name = (char *)"ESP-D4EFA3";
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
