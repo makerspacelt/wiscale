@@ -2,6 +2,7 @@
 #include "Ticker.h"
 #include "HX711.h"
 #include "mqtt.h"
+#include "power.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -49,14 +50,7 @@ void readTemperature(){
       sensors.requestTemperatures(); // Send the command to get temperatures
       State.temperature= sensors.getTempCByIndex(0);
 }
-void selfDestruct() {
-    Serial.println("Killing power...");
-    pinMode(MCU_DONE_PIN, OUTPUT);
-    digitalWrite(MCU_DONE_PIN, HIGH);
-    delay(100);
-    Serial.println("Going back to sleep.");
-    ESP.deepSleep(60e6);
-}
+
 // ===============================================
 
 void setup() {
