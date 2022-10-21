@@ -1,4 +1,6 @@
 #include "scale.h"
+HX711 scale;
+
 void initScale()
 {
 	scale.begin(Config.scale.pin_dt,
