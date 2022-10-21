@@ -47,7 +47,7 @@ void readScale() {
 }
 void readBattery() {
     //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)
-    State.battery = map(analogRead(BAT), 0, 1024, 0, Config.battery_range)/1000.0;
+    State.battery = map(analogRead(Config.adc[0].pin), 0, 1024, 0, Config.battery_range)/1000.0;
 }
 void readTemperature(){
       sensors.requestTemperatures(); // Send the command to get temperatures
