@@ -10,9 +10,9 @@ uint8_t ReadGPIO(char*  pinName){
         {
           return digitalRead(Config.gpio[i].pin);
 	}
+  }
 	Serial.println("GPIO pin not found");
 	return 0;
-}
 }
 void ReconfigureGPIO()
 {
