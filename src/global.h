@@ -5,6 +5,7 @@
 //#define CONFIGURE_WIFI true
 #define WIFI_SSID "SSID"
 #define WIFI_PASS "PASS"
+// todo https://ubidots.com/blog/connect-your-esp8266-to-any-available-wi-fi-network/
 
 #define EXECUTION_TIMEOUT 10
 #define MAX_GPIO_PINS 24
