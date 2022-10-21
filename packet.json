@@ -1,0 +1,70 @@
+{
+    "host": "mate-scale-stage",
+    "debug": 1,
+    "gpio": [{
+            "pin": 2,
+            "name": "led",
+            "mode": "output",
+            "invert": 0,
+            "default": 1
+        },
+        {
+            "pin": 13,
+            "name": "charging",
+            "mode": "input",
+            "invert": 0
+        }
+    ],
+    "adc": [{
+        "pin": 0,
+        "name": "battery",
+        "readings": 10,
+        "offset": 0,
+        "multi": 0.0047460937
+    }],
+    "hx711": [{
+        "name": "weight",
+        "pin_sck": 5,
+        "pin_dt": 4,
+        "gain": 64,
+        "offset": 185000,
+        "multi": 402.8
+    }],
+    "ds18b20": [{
+        "name": "temp",
+        "pin": 14,
+        "offset": 0,
+        "multi": 1
+    }]
+}
+mosquitto_pub - t "device/mate-scale-stage/data" - q 1 - r - m '{
+"host": "mate-scale-stage",
+"battery": 3.812,
+"weight": 150000,
+"temp": 16.125,
+"charging": 1,
+"led": 1,
+"configured": 1
+}
+'
+mosquitto_pub - t "device/mate-scale-stage/debug" - q 1 - r - m '{
+"host": "mate-scale-stage",
+"adc": {
+    "readings": 1,
+    "pre_offset": 800,
+    "pre_multi": 3797
+},
+"hx711": {
+    "radings": 1,
+    "gain": 128,
+    "pre_offset": 800,
+    "pre_multi": 3797
+},
+"ds18b20": {
+    "readings": 1,
+    "pre_offset": 800,
+    "pre_multi": 3797
+},
+"configured": 1
+}
+'
