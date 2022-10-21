@@ -4,6 +4,7 @@
 #include "mqtt.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "adc.h"
 
 #define DOUT  4 //D2
 #define CLK  5 //D1
@@ -45,10 +46,7 @@ void initWifi() {
 void readScale() {
     State.grams = scale.get_units(30);
 }
-void readBattery() {
-    //  (bat)----[180k]----[220k]--(A0)--[100k]----(GND)
-    State.battery = map(analogRead(Config.adc[0].pin), 0, 1024, 0, Config.battery_range)/1000.0;
-}
+
 void readTemperature(){
       sensors.requestTemperatures(); // Send the command to get temperatures
       State.temperature= sensors.getTempCByIndex(0);
@@ -85,15 +83,6 @@ void ReconfigureGPIO(){
     }
 }
 
-void ReconfigureADC(){
-    for (uint32_t i = 0; i < MAX_ADC_PINS; i++)
-    {
-        if (Config.adc[i].configured)
-        {
-          pinMode(Config.adc[i].pin,INPUT);
-        }
-    }
-}
 void ReconfigureTemperature(){
         // Start up tempreture
     sensors.begin();
