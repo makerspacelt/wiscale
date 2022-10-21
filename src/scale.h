@@ -4,8 +4,6 @@
 #include "global.h"
 #define READINGS 30
 
-HX711 scale;
-
 void initScale();
 void readScale();
 void powerDownScale();
