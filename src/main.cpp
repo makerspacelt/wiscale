@@ -22,7 +22,11 @@ DallasTemperature sensors(&oneWire);
 Ticker timer;
 
 void initScale() {
-    scale.begin(DOUT, CLK,Config.scale.gain);
+    scale.begin(
+        Config.scale.pin_dt, 
+        Config.scale.pin_sck,
+        Config.scale.gain
+        );
     scale.power_up();
 
     scale.set_scale(Config.scale.multi);
