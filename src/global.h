@@ -10,6 +10,7 @@
 #define EXECUTION_TIMEOUT 10
 #define MAX_GPIO_PINS 24
 #define MAX_ADC_PINS 2
+#define USED_SCALES 1
 
 struct GPIOConfig
 {
@@ -39,6 +40,7 @@ struct Hx711Config
     uint8_t gain = 32;
     int offset = 185000;
     float multi = 402.8;
+    uint16_t readings = 30;
 };
 
 struct Ds18b20Config
@@ -55,7 +57,7 @@ struct GlobalConfig
     const char *name = (char *)"ESP-D4EFA3";
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
-    Hx711Config scale = {};
+    Hx711Config scales[USED_SCALES] = {};
     Ds18b20Config temperature = {};
 };
 
