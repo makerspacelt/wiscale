@@ -11,11 +11,12 @@
 #define MAX_GPIO_PINS 24
 #define MAX_ADC_PINS 2
 #define USED_SCALES 1
+#define INVALID_NAME "N/A"
 
 struct GPIOConfig
 {
     uint8_t pin = 2;
-    const char *name = (char *)"NA";
+    const char *name = (char *)INVALID_NAME;
     uint8_t mode = 0; // 0 - input, 1 - output
     uint8_t inverted = 0;
     uint8_t defaultValue = 0;
@@ -25,7 +26,7 @@ struct GPIOConfig
 struct ADCConfig
 {
     uint8_t pin = 17; // A0
-    const char *name = (char *)"NA";
+    const char *name = (char *)INVALID_NAME;
     uint32_t readingsForMean = 10;
     float offset = 0;
     float multiplier = 0.0047460937; // How to convert to voltage.
@@ -34,7 +35,7 @@ struct ADCConfig
 
 struct Hx711Config
 {
-    const char *name = (char *)"weight";
+    const char *name = (char *)INVALID_NAME;
     uint8_t pin_sck = 5;
     uint8_t pin_dt = 4;
     uint8_t gain = 32;
@@ -45,7 +46,7 @@ struct Hx711Config
 
 struct Ds18b20Config
 {
-    const char *name = (char *)"temp";
+    const char *name = (char *)INVALID_NAME;
     uint8_t pin = 1;
     float offset = 0;
     float multi = 1;
