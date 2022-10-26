@@ -27,15 +27,50 @@ void destroyMqtt()
     mqtt.disconnect();
 }
 
-void sendMessage()
+void  sendMessage()
 {
     if (mqtt.connected())
     {
-        char msg[254];
-        char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"grams\":%f,\"pieces\":%d,\"battery\":%f,\"configured\":%d,\"temperature\":%f,\"charging\":%d}", Config.name, State.grams, State.pieces, State.battery, State.configured, State.temperature, State.charging);
-        sprintf(topic, "scale/%s/data", Config.name);
-        mqtt.publish(topic, msg, true);
+        char msg[512];
+        char topic[256];
+        StaticJsonDocument<JSON_BUFFER_SIZE> doc;
+        doc["host"] = Config.name;
+        doc["grams"] = State.grams;
+        doc["pieces"] = State.pieces;
+        doc["battery"] = State.battery;
+        doc["configured"] = State.configured;
+        doc["temperature"] = State.temperature;
+        doc["charging"] = State.charging;
+        serializeJson(doc, msg);
+        snprintf(topic, 256, "device/%s/data", Config.name);
+        mqtt.publish(topic, msg, false);
+    }
+}
+void sendDebugMessage()
+{
+    if(mqtt.connected())
+    {
+        char msg[512];
+        char topic[256];
+        StaticJsonDocument<JSON_BUFFER_SIZE> doc;
+        doc["host"] = Config.name;
+        JsonObject adc = doc.createNestedObject("adc");
+        adc["readings"] = Debug.adc[0].readings;
+        adc["pre_offset"] = Debug.adc[0].pre_offset;
+        adc["pre_multi"] = Debug.adc[0].pre_multi;
+        JsonObject hx711 = doc.createNestedObject("hx711");
+        hx711["readings"] = Debug.hx711.readings;
+        hx711["gain"] = Debug.hx711.gain;
+        hx711["pre_offset"] = Debug.hx711.pre_offset;
+        hx711["pre_multi"] = Debug.hx711.pre_multi;
+        JsonObject ds18b20 = doc.createNestedObject("dx18b20");
+        ds18b20["readings"] = Debug.ds18b20.readings;
+        ds18b20["pre_offset"] = Debug.ds18b20.pre_offset;
+        ds18b20["pre_multi"] = Debug.ds18b20.pre_multi;
+        doc["configured"] = Debug.configured;
+        serializeJson(doc, msg);
+        snprintf(topic, 256, "device/%s/debug", Config.name);
+        mqtt.publish(topic, msg, false);
     }
 }
 
@@ -109,11 +144,14 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
     Serial.println("Parsing tempreture sensor config");
     JsonArray array = doc["ds18b20"].as<JsonArray>();
     JsonObject json = array[0]; // todo parse multiple temp sensors
+    Serial.println("Array init");
 
     Config.temperature.name = json["name"];
     Config.temperature.pin = json["pin"];
     Config.temperature.offset = json["offset"];
     Config.temperature.multi = json["multi"];
+    Serial.println("Values assigned");
+
 }
 
 void configCallback(char *topic, byte *payload, unsigned int length)
@@ -131,9 +169,10 @@ void configCallback(char *topic, byte *payload, unsigned int length)
         Serial.println(error.f_str());
         return;
     }
+    
     // Get hostname
-    Config.name = doc["host"];
-
+    strcpy(Config.name, doc["host"]);
+    //strcpy(Debug.host, doc["host"]);
     // Get gpio config
     ParseGPIOConfig(doc);
 

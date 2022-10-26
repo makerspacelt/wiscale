@@ -6,8 +6,18 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 void readTemperature()
 {
-	sensors.requestTemperatures(); // Send the command to get temperatures
-	State.temperature = sensors.getTempCByIndex(0);
+	long sum = 0;
+	for (byte i = 0; i < Config.temperature.readings; i++) {
+		sensors.requestTemperatures(); // Send the command to get temperatures
+		sum += sensors.getTempCByIndex(0);
+		delay(0);
+	}
+	float temperature = sum / Config.temperature.readings;
+	Debug.ds18b20.pre_offset = temperature;
+	temperature += Config.temperature.offset;
+	Debug.ds18b20.pre_multi = temperature;
+	temperature *= Config.temperature.multi;
+	State.temperature = temperature;
 }
 void ReconfigureTemperature()
 {

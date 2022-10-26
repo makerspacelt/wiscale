@@ -7,13 +7,17 @@ void initScale()
 				Config.scale.pin_sck,
 				Config.scale.gain);
 	scale.power_up();
-
-	scale.set_scale(Config.scale.multi);
-	scale.set_offset(Config.scale.offset);
 }
 void readScale()
 {
-	State.grams = scale.get_units(READINGS);
+	float weightValue =  scale.get_units(Config.scale.readings);
+	Debug.hx711.gain = Config.scale.gain;
+	Debug.hx711.readings = Config.scale.readings;
+	Debug.hx711.pre_offset = weightValue;
+	weightValue += Config.scale.offset;
+	Debug.hx711.pre_multi = weightValue;
+	weightValue *= Config.scale.multi;
+	State.grams = weightValue;
 }
 void powerDownScale()
 {

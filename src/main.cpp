@@ -7,6 +7,7 @@
 #include "gpio.h"
 #include "scale.h"
 #include "temperature.h"
+#include "ArduinoJson.h"
 
 #define MCU_DONE_PIN  12 //D6
 #define CHARGING 13 //D7
@@ -85,10 +86,11 @@ void loop() {
 
     readScale();
     readBattery();
-    readTemperature();
+    readTemperature(); 
 
     Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", State.grams, State.battery, State.temperature);
     sendMessage();
-
+    Serial.printf("Sending debug message\n");
+    sendDebugMessage();
     PowerDown();
 }

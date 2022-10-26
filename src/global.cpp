@@ -2,4 +2,5 @@
 
 GlobalState State;
 GlobalConfig Config;
+GlobalDebug Debug;
 

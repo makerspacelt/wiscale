@@ -29,6 +29,7 @@ struct ADCConfig
     float offset = 0;
     float multiplier = 0.0047460937; // How to convert to voltage.
     uint8_t configured = 0;
+    int readings = 1;
 };
 
 struct Hx711Config
@@ -39,6 +40,7 @@ struct Hx711Config
     uint8_t gain = 32;
     int offset = 185000;
     float multi = 402.8;
+    int readings = 1;
 };
 
 struct Ds18b20Config
@@ -47,18 +49,18 @@ struct Ds18b20Config
     uint8_t pin = 1;
     float offset = 0;
     float multi = 1;
+    int readings = 1;
 };
 
 struct GlobalConfig
 {
     int battery_range = 4860;
-    const char *name = (char *)"ESP-D4EFA3";
+    char *name = (char *)"noname";
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
     Hx711Config scale = {};
     Ds18b20Config temperature = {};
 };
-
 struct GlobalState
 {
     float grams = 0;
@@ -69,7 +71,39 @@ struct GlobalState
     int configured = 0;
 };
 
+struct ADCDebug
+{
+    int readings = 0;
+    float pre_offset = 0;
+    float pre_multi = 0;
+};
+
+struct HX711Debug
+{
+    int readings = 0;
+    uint8_t gain = 32;
+    float pre_offset = 0;
+    float pre_multi = 0;
+};
+
+struct DS18b20Debug
+{
+    int readings = 0;
+    float pre_offset = 0;
+    float pre_multi = 0;
+};
+
+struct GlobalDebug
+{
+    char *host;
+    ADCDebug adc[MAX_ADC_PINS] = {};
+    HX711Debug hx711 = {};
+    DS18b20Debug ds18b20 = {};
+    int configured = 0;
+};
+
 extern GlobalState State;
 extern GlobalConfig Config;
+extern GlobalDebug Debug;
 
 #endif // GLOBAL_H
