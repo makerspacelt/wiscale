@@ -135,14 +135,19 @@ void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
     Serial.println("Parsing scale sensor config");
     JsonArray array = doc["hx711"].as<JsonArray>();
-    JsonObject json = array[0]; // todo parse multiple scales
-
-    Config.scale.name = json["name"];
-    Config.scale.pin_sck = json["pin_sck"];
-    Config.scale.pin_dt = json["pin_dt"];
-    Config.scale.gain = json["gain"]; 
-    Config.scale.offset = json["offset"];
-    Config.scale.multi = json["multi"];
+    for (uint8_t i = 0; i < array.size(); i++)
+    {
+        JsonObject json = array[i];
+        Hx711Config scaleConfig = {};
+        scaleConfig.name = json["name"];
+        scaleConfig.pin_sck = json["pin_sck"];
+        scaleConfig.pin_dt = json["pin_dt"];
+        scaleConfig.gain = json["gain"];
+        scaleConfig.offset = json["offset"];
+        scaleConfig.multi = json["multi"];
+        scaleConfig.readings = json["readings"];
+        Config.scales[i] = scaleConfig;
+    }
 }
 void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
