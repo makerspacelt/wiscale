@@ -12,7 +12,7 @@ struct MS_HX711_Scale
 // Sets up pins and gains of a single scale
 HX711 initScale(Hx711Config config);
 // Sets up pins and gains of all of the scales
-void initScales(Hx711Config configs[]);
+void initScales(struct Hx711Config configs[]);
 
 // Clears memory from previous configs.
 void deInitScales();

@@ -12,7 +12,7 @@ HX711 initScale(Hx711Config config)
 	scale.set_scale(config.multi);
 	scale.set_offset(config.offset);
 }
-void initScales(Hx711Config configs[])
+void initScales(struct Hx711Config configs[])
 {
 	deInitScales();
 	if (sizeof(configs) != USED_SCALES)

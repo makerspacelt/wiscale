@@ -64,11 +64,10 @@ struct GlobalConfig
 
 struct GlobalState
 {
-    float grams = 0;
+    MS_HX711_Scale scales[USED_SCALES] = {};
     float battery = 0;
     float temperature = 0;
     int charging = 0;
-    int pieces = 0;
     int configured = 0;
 };
 
