@@ -30,7 +30,7 @@ void PrintScaleValues()
     
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
-        char* scaleInfo;
+        char scaleInfo[30];
         MS_HX711_Scale ms_scale = getMSScale(Config.scales[i]);
         // Read and save to ms_scale
         readScale(ms_scale.config, true);

@@ -1,7 +1,18 @@
 #ifndef SCALE_H
 #define SCALE_H
 #include "HX711.h"
-#include "global.h"
+#include "common.h"
+#define USED_SCALES 1
+struct Hx711Config
+{
+    const char *name = (char *)INVALID_NAME;
+    uint8_t pin_sck = 5;
+    uint8_t pin_dt = 4;
+    uint8_t gain = 32;
+    int offset = 185000;
+    float multi = 402.8;
+    uint16_t readings = 30;
+};
 
 struct MS_HX711_Scale
 {

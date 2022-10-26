@@ -28,6 +28,20 @@ void destroyMqtt()
     mqtt.disconnect();
 }
 
+const char *getScaleJObject(MS_HX711_Scale scale)
+{
+    // allocate the memory for the document
+    const size_t CAPACITY = JSON_OBJECT_SIZE(1);
+    StaticJsonDocument<CAPACITY> doc;
+    // create an object
+    JsonObject object = doc.to<JsonObject>();
+    object[scale.config.name] = scale.grams;
+
+    // serialize the object and send the result to Serial
+    const char *json_string;
+    serializeJson(doc, json_string);
+    return json_string;
+}
 const char *getScaleData()
 {
 
@@ -53,20 +67,6 @@ const char *getScaleData()
     return json_string;
 }
 
-const char *getScaleJObject(MS_HX711_Scale scale)
-{
-    // allocate the memory for the document
-    const size_t CAPACITY = JSON_OBJECT_SIZE(1);
-    StaticJsonDocument<CAPACITY> doc;
-    // create an object
-    JsonObject object = doc.to<JsonObject>();
-    object[scale.config.name] = scale.grams;
-
-    // serialize the object and send the result to Serial
-    const char *json_string;
-    serializeJson(doc, json_string);
-    return json_string;
-}
 void sendMessage()
 {
     if (mqtt.connected())

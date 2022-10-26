@@ -1,6 +1,8 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 #include "stdint.h"
+#include "common.h"
+#include "scale.h"
 
 //#define CONFIGURE_WIFI true
 #define WIFI_SSID "SSID"
@@ -10,8 +12,6 @@
 #define EXECUTION_TIMEOUT 10
 #define MAX_GPIO_PINS 24
 #define MAX_ADC_PINS 2
-#define USED_SCALES 1
-#define INVALID_NAME "N/A"
 
 struct GPIOConfig
 {
@@ -33,16 +33,7 @@ struct ADCConfig
     uint8_t configured = 0;
 };
 
-struct Hx711Config
-{
-    const char *name = (char *)INVALID_NAME;
-    uint8_t pin_sck = 5;
-    uint8_t pin_dt = 4;
-    uint8_t gain = 32;
-    int offset = 185000;
-    float multi = 402.8;
-    uint16_t readings = 30;
-};
+
 
 struct Ds18b20Config
 {

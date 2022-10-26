@@ -11,6 +11,7 @@ HX711 initScale(Hx711Config config)
 
 	scale.set_scale(config.multi);
 	scale.set_offset(config.offset);
+	return scale;
 }
 void initScales(struct Hx711Config configs[])
 {
@@ -66,7 +67,7 @@ void saveScaleValue(Hx711Config config, float value)
 	}
 }
 
-float readScale(Hx711Config config, bool save = false)
+float readScale(Hx711Config config, bool save)
 {
 	float grams = getScale(config).get_units(config.readings);
 	if (save)
