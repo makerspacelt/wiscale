@@ -68,7 +68,7 @@ void saveThermometerValue(Ds18b20Config config, float value)
 	MS_Ds18b20 thermometer = getMSThermometer(config);
 	if (isScaleValid(thermometer))
 	{
-		thermometer.thermometers = value;
+		thermometer.temperature = value;
 	}
 }
 

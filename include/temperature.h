@@ -22,7 +22,7 @@ struct MS_Ds18b20
 {
     Ds18b20Config config = {};
     DallasTemperature thermometer;
-    float thermometers = 0;
+    float temperature = 0;
 
 #ifdef USES_MULTIPLE_ON_BUS
     float temperatures[];
