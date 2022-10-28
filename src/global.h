@@ -1,8 +1,9 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
-#include "stdint.h"
 #include "common.h"
 #include "scale.h"
+#include "stdint.h"
+#include "temperature.h"
 
 //#define CONFIGURE_WIFI true
 #define WIFI_SSID "SSID"
@@ -33,16 +34,6 @@ struct ADCConfig
     uint8_t configured = 0;
 };
 
-
-
-struct Ds18b20Config
-{
-    const char *name = (char *)INVALID_NAME;
-    uint8_t pin = 1;
-    float offset = 0;
-    float multi = 1;
-};
-
 struct GlobalConfig
 {
     int battery_range = 4860;
@@ -50,14 +41,14 @@ struct GlobalConfig
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
     Hx711Config scales[USED_SCALES] = {};
-    Ds18b20Config temperature = {};
+    Ds18b20Config thermometers[USED_TEMPERATURE_SENSORS] = {};
 };
 
 struct GlobalState
 {
     MS_HX711_Scale scales[USED_SCALES] = {};
     float battery = 0;
-    float temperature = 0;
+    MS_Ds18b20 thermometers[USED_TEMPERATURE_SENSORS] = {};
     int charging = 0;
     int configured = 0;
 };

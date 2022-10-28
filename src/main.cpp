@@ -19,10 +19,19 @@ Ticker timer;
 void ReadScales(){
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
-        MS_HX711_Scale ms_scale=getMSScale(Config.scales[i]);
+        MS_HX711_Scale sensor=getMSScale(Config.scales[i]);
         // Read and save to ms_scale
-        readScale(ms_scale.config,true);
-        State.scales[i]=ms_scale;
+        readScale(sensor.config,true);
+        State.scales[i]=sensor;
+    }    
+}
+void ReadThermometers(){
+    for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
+    {
+        MS_Ds18b20 sensor=getMSThermometer(Config.thermometers[i]);
+        // Read and save to ms_scale
+        readThermometer(sensor.config,0,true);
+        State.thermometers[i]=sensor;
     }    
 }
 void PrintScaleValues()
@@ -66,7 +75,7 @@ void setup() {
 
 void Reconfigure(){
     Serial.println("Reconfiguring");
-    ReconfigureTemperature();
+    initThermometers(Config.thermometers);
     initScales(Config.scales);
 }
 void PowerDown(){
@@ -105,10 +114,10 @@ void loop() {
 
     ReadScales();
     readBattery();
-    readTemperature();
+    ReadThermometers();
 
     PrintScaleValues();
-    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.temperature);
+    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers);
     sendMessage();
 
     PowerDown();
