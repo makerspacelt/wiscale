@@ -16,6 +16,28 @@
 
 Ticker timer;
 
+void ReadScales(){
+    for (uint16_t i = 0; i < USED_SCALES; i++)
+    {
+        MS_HX711_Scale ms_scale=getMSScale(Config.scales[i]);
+        // Read and save to ms_scale
+        readScale(ms_scale.config,true);
+        State.scales[i]=ms_scale;
+    }    
+}
+void PrintScaleValues()
+{
+    
+    for (uint16_t i = 0; i < USED_SCALES; i++)
+    {
+        char scaleInfo[30];
+        MS_HX711_Scale ms_scale = getMSScale(Config.scales[i]);
+        // Read and save to ms_scale
+        readScale(ms_scale.config, true);
+        sprintf(scaleInfo,"Scale name: %s, value: %3.2f",ms_scale.config.name,ms_scale.grams);
+        Serial.println(scaleInfo);
+    }
+}
 
 void initWifi() {
     //Serial.setDebugOutput(true);
@@ -39,18 +61,16 @@ void setup() {
     digitalWrite(MCU_DONE_PIN, LOW);
     
     initWifi();
-
  }
-
 
 
 void Reconfigure(){
     Serial.println("Reconfiguring");
     ReconfigureTemperature();
-    initScale();
+    initScales(Config.scales);
 }
 void PowerDown(){
-    powerDownScale();
+    deInitScales();
     Serial.print("Shutting down: ");
     for (int i=0; i<10; i++) {
         loopMqtt();
@@ -83,11 +103,12 @@ void loop() {
     }    
     Reconfigure();
 
-    readScale();
+    ReadScales();
     readBattery();
     readTemperature();
 
-    Serial.printf("Sending message: %.3fg; %.3fV, %.3f C\n", State.grams, State.battery, State.temperature);
+    PrintScaleValues();
+    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.temperature);
     sendMessage();
 
     PowerDown();
