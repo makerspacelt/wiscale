@@ -30,7 +30,7 @@ void ReadThermometers(){
     {
         MS_Ds18b20 sensor=getMSThermometer(Config.thermometers[i]);
         // Read and save to ms_scale
-        readThermometer(sensor.config,true);
+        readThermometer(sensor.config,0,true);
         State.thermometers[i]=sensor;
     }    
 }

@@ -73,7 +73,7 @@ void saveThermometerValue(Ds18b20Config config, float value)
 }
 
 // Reads Thermometer value. If save == true, saves it to MS_Ds18b20 grams.
-float readThermometer(Ds18b20Config config, uint16_t sensorId = 0, bool save = false)
+float readThermometer(Ds18b20Config config, uint16_t sensorId, bool save)
 {
 	// TODO multiple readings
 	DallasTemperature sensors = getThermometer(config);

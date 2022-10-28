@@ -1,8 +1,6 @@
 #include "mqtt.h"
 #include "power.h"
 #include "ArduinoJson.h"
-#include "scale.h"
-#include "temperature.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
