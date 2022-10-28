@@ -20,10 +20,13 @@ void ReadScales(){
     Serial.println("Reading scales");
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
-        MS_HX711_Scale sensor=getMSScale(Config.scales[i]);
+        MS_HX711_Scale* sensor=getMSScale(Config.scales[i]);
         // Read and save to ms_scale
-        readScale(sensor.config,true);
-        State.scales[i]=sensor;
+        readScale(sensor->config,true);
+        Serial.print("Previous scale value ");
+        Serial.print(State.scales[i].grams);
+        Serial.print("Previous next value ");
+        Serial.print(sensor->grams);
     }    
 }
 void ReadThermometers(){
@@ -41,10 +44,9 @@ void PrintScaleValues()
     
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
-        char scaleInfo[30];
-        MS_HX711_Scale ms_scale = getMSScale(Config.scales[i]);
+        char scaleInfo[50];
+        MS_HX711_Scale ms_scale = State.scales[i];
         // Read and save to ms_scale
-        readScale(ms_scale.config, true);
         sprintf(scaleInfo,"Scale name: %s, value: %3.2f",ms_scale.config.name,ms_scale.grams);
         Serial.println(scaleInfo);
     }
@@ -67,7 +69,7 @@ void setup() {
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
-    timer.attach(EXECUTION_TIMEOUT, selfDestruct);
+    //timer.attach(EXECUTION_TIMEOUT, selfDestruct);
     pinMode(MCU_DONE_PIN, OUTPUT);
     digitalWrite(MCU_DONE_PIN, LOW);
     

@@ -3,8 +3,11 @@ MS_Ds18b20 Thermometers[USED_TEMPERATURE_SENSORS] = {};
 
 DallasTemperature initThermometer(Ds18b20Config config)
 {
+	Serial.print("Initializing thermometer Pin ");
+	Serial.println(config.pin);
 	OneWire oneWire(config.pin);
 	DallasTemperature sensors(&oneWire);
+	Serial.print("Starting one wire");
 	sensors.begin();
 	return sensors;
 }
@@ -66,6 +69,10 @@ void saveThermometerValue(Ds18b20Config config, float value)
 	if (isScaleValid(thermometer))
 	{
 		thermometer.temperature = value;
+	}
+	else
+	{
+		Serial.println("Thermometer is invalid");
 	}
 }
 
