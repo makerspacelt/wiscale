@@ -1,6 +1,7 @@
 #include "mqtt.h"
 #include "power.h"
 #include "ArduinoJson.h"
+#include "scale.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -27,13 +28,52 @@ void destroyMqtt()
     mqtt.disconnect();
 }
 
+String getScaleJObject(MS_HX711_Scale scale)
+{
+    // allocate the memory for the document
+    const size_t CAPACITY = JSON_OBJECT_SIZE(1);
+    StaticJsonDocument<CAPACITY> doc;
+    // create an object
+    JsonObject object = doc.to<JsonObject>();
+    object[scale.config.name] = scale.grams;
+
+    // serialize the object and send the result to Serial
+    String json_string;
+    serializeJson(doc, json_string);
+    return json_string;
+}
+String getScaleData()
+{
+
+    // compute the required size
+    const size_t CAPACITY = JSON_ARRAY_SIZE(USED_SCALES);
+
+    // allocate the memory for the document
+    StaticJsonDocument<CAPACITY> doc;
+
+    // create an empty array
+    JsonArray array = doc.to<JsonArray>();
+
+    JsonObject scaleObject;
+    // add some values
+    for (uint8_t i = 0; i < USED_SCALES; i++)
+    {
+        array.add(getScaleJObject(State.scales[i]));
+    }
+
+    // serialize the object and send the result to Serial
+    String json_string;
+    serializeJson(doc, json_string);
+    return json_string;
+}
+
 void sendMessage()
 {
     if (mqtt.connected())
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"grams\":%f,\"pieces\":%d,\"battery\":%f,\"configured\":%d,\"temperature\":%f,\"charging\":%d}", Config.name, State.grams, State.pieces, State.battery, State.configured, State.temperature, State.charging);
+        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperature\":%f,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, State.temperature, State.charging);
         sprintf(topic, "scale/%s/data", Config.name);
         mqtt.publish(topic, msg, true);
     }
@@ -50,7 +90,7 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
         return;
     }
 
-    for (uint i = 0; i < array.size(); i++)
+    for (uint8_t i = 0; i < array.size(); i++)
     {
         Config.gpio[i].name = array[i]["name"];
         Config.gpio[i].defaultValue = array[i]["default"];
@@ -71,7 +111,7 @@ void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
         return;
     }
 
-    for (uint i = 0; i < array.size(); i++)
+    for (uint8_t i = 0; i < array.size(); i++)
     {
         Config.adc[i].name = array[i]["name"];
         Config.adc[i].readingsForMean = array[i]["readings"];
@@ -95,14 +135,19 @@ void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
     Serial.println("Parsing scale sensor config");
     JsonArray array = doc["hx711"].as<JsonArray>();
-    JsonObject json = array[0]; // todo parse multiple scales
-
-    Config.scale.name = json["name"];
-    Config.scale.pin_sck = json["pin_sck"];
-    Config.scale.pin_dt = json["pin_dt"];
-    Config.scale.gain = json["gain"]; 
-    Config.scale.offset = json["offset"];
-    Config.scale.multi = json["multi"];
+    for (uint8_t i = 0; i < array.size(); i++)
+    {
+        JsonObject json = array[i];
+        Hx711Config scaleConfig = {};
+        scaleConfig.name = json["name"];
+        scaleConfig.pin_sck = json["pin_sck"];
+        scaleConfig.pin_dt = json["pin_dt"];
+        scaleConfig.gain = json["gain"];
+        scaleConfig.offset = json["offset"];
+        scaleConfig.multi = json["multi"];
+        scaleConfig.readings = json["readings"];
+        Config.scales[i] = scaleConfig;
+    }
 }
 void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
