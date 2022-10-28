@@ -5,7 +5,7 @@
 #define USED_SCALES 1
 struct Hx711Config
 {
-    const char *name = (char *)INVALID_NAME;
+    char name[MAX_NAME_LENGTH] =INVALID_NAME;
     uint8_t pin_sck = 5;
     uint8_t pin_dt = 4;
     uint8_t gain = 32;

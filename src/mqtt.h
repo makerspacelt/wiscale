@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "global.h"
-#define JSON_BUFFER_SIZE 2048
+#define JSON_BUFFER_SIZE 1400
 
 void setupMqtt();
 void loopMqtt();

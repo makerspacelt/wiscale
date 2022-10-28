@@ -11,13 +11,10 @@ DallasTemperature initThermometer(Ds18b20Config config)
 
 void initThermometers(struct Ds18b20Config configs[])
 {
+	Serial.println("Initializing thermometers");
 	deInitThermometers();
-	if (sizeof(configs) != USED_TEMPERATURE_SENSORS) // TODO sizeof is incorrect
-	{
-		Serial.println("Themperature count mismatch! Check configs!");
-		return;
-	}
-	for (uint16_t i = 0; i < sizeof(configs); i++)
+
+	for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
 	{
 		Thermometers[i].config = configs[i];
 		Thermometers[i].thermometer = initThermometer(configs[i]);

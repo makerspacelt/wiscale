@@ -15,13 +15,10 @@ HX711 initScale(Hx711Config config)
 }
 void initScales(struct Hx711Config configs[])
 {
+	Serial.println("Initializing scales");
 	deInitScales();
-	if (sizeof(configs) != USED_SCALES)
-	{
-		Serial.println("Scale count mismatch! Check configs!");
-		return;
-	}
-	for (uint16_t i = 0; i < sizeof(configs); i++)
+
+	for (uint16_t i = 0; i < USED_SCALES; i++)
 	{
 		Scales[i].config = configs[i];
 		Scales[i].scale = initScale(configs[i]);

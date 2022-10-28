@@ -10,7 +10,7 @@
 //#define USES_MULTIPLE_ON_BUS
 struct Ds18b20Config
 {
-    const char *name = (char *)INVALID_NAME;
+    char name[MAX_NAME_LENGTH] = INVALID_NAME;
     uint8_t pin = 1;
     float offset = 0;
     float multi = 1;

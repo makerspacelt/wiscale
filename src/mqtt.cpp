@@ -31,7 +31,7 @@ String getTemperatureData()
     // TODO get thermometers data
     return "";
 }
-String getTemperatureJObject(MS_HX711_Scale scale){
+char* getTemperatureJObject(MS_HX711_Scale scale){
     // TODO get thermometers object
     return "";
 }
@@ -99,7 +99,8 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
     for (uint8_t i = 0; i < array.size(); i++)
     {
-        Config.gpio[i].name = array[i]["name"];
+        const char* name=array[i]["name"];
+        strcpy(Config.gpio[i].name , name);
         Config.gpio[i].defaultValue = array[i]["default"];
         Config.gpio[i].inverted = array[i]["invert"];
         Config.gpio[i].mode = array[i]["mode"];
@@ -120,7 +121,8 @@ void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
     for (uint8_t i = 0; i < array.size(); i++)
     {
-        Config.adc[i].name = array[i]["name"];
+        const char* name=array[i]["name"];
+        strcpy(Config.adc[i].name , name);
         Config.adc[i].readingsForMean = array[i]["readings"];
         Config.adc[i].offset = array[i]["offset"];
         Config.adc[i].multiplier = array[i]["multi"];
@@ -142,11 +144,16 @@ void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
     Serial.println("Parsing scale sensor config");
     JsonArray array = doc["hx711"].as<JsonArray>();
+    char msg[5];
+    sprintf (msg, "Found scale sensors %d",array.size());
+    Serial.println(msg);
     for (uint8_t i = 0; i < array.size(); i++)
     {
         JsonObject json = array[i];
         Hx711Config scaleConfig = {};
-        scaleConfig.name = json["name"];
+        const char* name=json["name"];
+        Serial.println(name);
+        strcpy(scaleConfig.name , name);
         scaleConfig.pin_sck = json["pin_sck"];
         scaleConfig.pin_dt = json["pin_dt"];
         scaleConfig.gain = json["gain"];
@@ -160,12 +167,16 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
     Serial.println("Parsing tempreture sensor config");
     JsonArray array = doc["ds18b20"].as<JsonArray>();
-
+    char msg[5];
+    sprintf (msg, "Found temperature sensors%d",array.size());
+    Serial.println(msg);
     for (uint8_t i = 0; i < array.size(); i++)
     {
         JsonObject json = array[i];
         Ds18b20Config thermometerConfig = {};
-        thermometerConfig.name = json["name"];
+        const char* name=json["name"];
+        Serial.println(name);
+        strcpy(thermometerConfig.name, name);
         thermometerConfig.pin = json["pin"];
         thermometerConfig.offset = json["offset"];
         thermometerConfig.multi = json["multi"];
@@ -182,6 +193,7 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     Serial.println("Received from topic");
     StaticJsonDocument<JSON_BUFFER_SIZE> doc;
     DeserializationError error = deserializeJson(doc, payload);
+    serializeJson(doc,Serial);
     if (error)
     {
         Serial.print(F("deserializeJson() failed: "));
@@ -189,16 +201,30 @@ void configCallback(char *topic, byte *payload, unsigned int length)
         return;
     }
     // Get hostname
-    Config.name = doc["host"];
-
+    Serial.println("Host name before");
+    Serial.println(Config.name);
+    strcpy(Config.name,doc["host"]);  
+    Serial.println("Host name");
+    Serial.println(Config.name);
+    delay(2000);
     // Get gpio config
+    #ifdef USE_GPIO    
     ParseGPIOConfig(doc);
-
+    #endif // USE_GPIO
+    
+    #ifdef USE_ADC
+    
     ParseADCConfig(doc);
+    #endif // USE_ADC
 
+    #ifdef USE_SCALE
+    
     parseHx711Config(doc);
+    #endif // USE_SCALE
    
+   #ifdef USE_DS18   
     parseDs18b20Config(doc);
+   #endif // USE_DS18
 
     State.configured = 1; 
 }

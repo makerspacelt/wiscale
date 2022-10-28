@@ -17,6 +17,7 @@
 Ticker timer;
 
 void ReadScales(){
+    Serial.println("Reading scales");
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
         MS_HX711_Scale sensor=getMSScale(Config.scales[i]);
@@ -26,6 +27,7 @@ void ReadScales(){
     }    
 }
 void ReadThermometers(){
+     Serial.println("Reading thermometers");
     for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
     {
         MS_Ds18b20 sensor=getMSThermometer(Config.thermometers[i]);
@@ -75,8 +77,12 @@ void setup() {
 
 void Reconfigure(){
     Serial.println("Reconfiguring");
+    #ifdef USE_DS18    
     initThermometers(Config.thermometers);
+    #endif // USE_DS18
+    #ifdef USE_SCALE    
     initScales(Config.scales);
+    #endif // USE_SCALE
 }
 void PowerDown(){
     deInitScales();
@@ -112,12 +118,29 @@ void loop() {
     }    
     Reconfigure();
 
-    ReadScales();
+     // Get gpio config
+    #ifdef USE_GPIO    
+    //
+    #endif // USE_GPIO
+    
+    #ifdef USE_ADC
+    
     readBattery();
+    #endif // USE_ADC
+
+    #ifdef USE_SCALE
+    
+    ReadScales();
+    #endif // USE_SCALE
+   
+   #ifdef USE_DS18   
     ReadThermometers();
+   #endif // USE_DS18
+    
+    
 
     PrintScaleValues();
-    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers);
+    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers[0].temperature);
     sendMessage();
 
     PowerDown();
