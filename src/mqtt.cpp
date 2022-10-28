@@ -2,6 +2,7 @@
 #include "power.h"
 #include "ArduinoJson.h"
 #include "scale.h"
+#include "temperature.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -27,7 +28,15 @@ void destroyMqtt()
 {
     mqtt.disconnect();
 }
-
+String getTemperatureData()
+{
+    // TODO get thermometers data
+    return "";
+}
+String getTemperatureJObject(MS_HX711_Scale scale){
+    // TODO get thermometers object
+    return "";
+}
 String getScaleJObject(MS_HX711_Scale scale)
 {
     // allocate the memory for the document
@@ -73,7 +82,7 @@ void sendMessage()
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperature\":%f,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, State.temperature, State.charging);
+        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, getTemperatureData(), State.charging);
         sprintf(topic, "scale/%s/data", Config.name);
         mqtt.publish(topic, msg, true);
     }
@@ -153,12 +162,17 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
     Serial.println("Parsing tempreture sensor config");
     JsonArray array = doc["ds18b20"].as<JsonArray>();
-    JsonObject json = array[0]; // todo parse multiple temp sensors
 
-    Config.temperature.name = json["name"];
-    Config.temperature.pin = json["pin"];
-    Config.temperature.offset = json["offset"];
-    Config.temperature.multi = json["multi"];
+    for (uint8_t i = 0; i < array.size(); i++)
+    {
+        JsonObject json = array[i];
+        Ds18b20Config thermometerConfig = {};
+        thermometerConfig.name = json["name"];
+        thermometerConfig.pin = json["pin"];
+        thermometerConfig.offset = json["offset"];
+        thermometerConfig.multi = json["multi"];
+        Config.thermometers[i] = thermometerConfig;
+    }
 }
 
 void configCallback(char *topic, byte *payload, unsigned int length)

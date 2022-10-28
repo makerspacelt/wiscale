@@ -1,27 +1,88 @@
 #include "temperature.h"
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(ONE_WIRE_BUS);
+MS_Ds18b20 Thermometers[USED_TEMPERATURE_SENSORS] = {};
 
-// Pass our oneWire reference to Dallas Temperature.
-DallasTemperature sensors(&oneWire);
-void readTemperature()
+DallasTemperature initThermometer(Ds18b20Config config)
 {
-	sensors.requestTemperatures(); // Send the command to get temperatures
-	State.temperature = sensors.getTempCByIndex(0);
-}
-
-
-Ds18b20Config readTemperature(uint16_t sensorId){
-	float temperature== sensors.getTempCByIndex(0);
-	Ds18b20Config readings={};
-
-}
-Ds18b20Config[] readAllTemperatureSensors();
-
-
-
-void ReconfigureTemperature()
-{
-	// Start up tempreture
+	OneWire oneWire(config.pin);
+	DallasTemperature sensors(&oneWire);
 	sensors.begin();
+	return sensors;
+}
+
+void initThermometers(struct Ds18b20Config configs[])
+{
+	deInitThermometers();
+	if (sizeof(configs) != USED_TEMPERATURE_SENSORS) // TODO sizeof is incorrect
+	{
+		Serial.println("Themperature count mismatch! Check configs!");
+		return;
+	}
+	for (uint16_t i = 0; i < sizeof(configs); i++)
+	{
+		Thermometers[i].config = configs[i];
+		Thermometers[i].thermometer = initThermometer(configs[i]);
+	}
+}
+
+// Clears memory from previous configs.
+void deInitThermometers()
+{
+	for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
+	{
+		Thermometers[i] = {};
+	}
+}
+
+// Checks if name is valid
+bool isScaleValid(MS_Ds18b20 thermometer)
+{
+	return thermometer.config.name != INVALID_NAME;
+}
+
+// Returns thermometer and config container
+MS_Ds18b20 getMSThermometer(Ds18b20Config config)
+{
+	{
+		for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
+		{
+			if (&Thermometers[i].config == &config)
+			{
+				return Thermometers[i];
+			}
+		}
+		// No scale found
+		return {};
+	}
+}
+
+// Returns regular thermometer
+DallasTemperature getThermometer(Ds18b20Config config)
+{
+	{
+		return getMSThermometer(config).thermometer;
+	}
+}
+
+void saveThermometerValue(Ds18b20Config config, float value)
+{
+	MS_Ds18b20 thermometer = getMSThermometer(config);
+	if (isScaleValid(thermometer))
+	{
+		thermometer.thermometers = value;
+	}
+}
+
+// Reads Thermometer value. If save == true, saves it to MS_Ds18b20 grams.
+float readThermometer(Ds18b20Config config, uint16_t sensorId = 0, bool save = false)
+{
+	// TODO multiple readings
+	DallasTemperature sensors = getThermometer(config);
+	sensors.requestTemperatures(); // Send the command to get temperatures
+	float thermometers = sensors.getTempCByIndex(sensorId);
+	// TODO multiple reads on bus
+	if (save)
+	{
+		saveThermometerValue(config, thermometers);
+	}
+	return thermometers;
 }
