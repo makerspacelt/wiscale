@@ -15,7 +15,7 @@ struct Hx711Config
 };
 
 // Sets up pins and gains of a single scale
-HX711 initScale(struct Hx711Config config);
+HX711 initHX711Scale(struct Hx711Config config);
 
 class MS_HX711_Scale
 {
@@ -24,24 +24,13 @@ public:
 	HX711 scale;
 	float grams = 0;
 
-	MS_HX711_Scale();
-	MS_HX711_Scale(Hx711Config scaleConfig);
+	MS_HX711_Scale(void);
+	MS_HX711_Scale(struct Hx711Config scaleConfig);
 	// Sets up pins and gains of all of the scales
-	void initScales(struct Hx711Config configs[]);
-
-	// Clears memory from previous configs.
-	void deInitScales();
+	void initScale(struct Hx711Config config);
 
 	// Checks if name is valid
-	bool isScaleValid(struct MS_HX711_Scale scale);
-
-	// Returns scale and config container
-	MS_HX711_Scale *getMSScale(struct Hx711Config config);
-
-	// Returns regular scale
-	HX711 getScale(struct Hx711Config config);
-
-	void saveScaleValue(struct Hx711Config config, float value);
+	bool isScaleValid(MS_HX711_Scale scale);
 
 	// Reads scale value. If save == true, saves it to MS_HX711_Scale grams.
 	float readScale(bool save = false);
