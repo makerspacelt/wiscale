@@ -13,7 +13,7 @@
 #define MAX_ADC_PINS 2
 #define USE_GPIO //
 #define USE_ADC  // Working
-//#define USE_DS18
+#define USE_DS18
 #define USE_SCALE
 
 struct GPIOConfig
