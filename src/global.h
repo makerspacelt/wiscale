@@ -3,8 +3,8 @@
 #include "common.h"
 #include "deviceState.hpp"
 #include "msScale.hpp"
+#include "msTemperature.hpp"
 #include "stdint.h"
-#include "temperature.h"
 
 // todo https://ubidots.com/blog/connect-your-esp8266-to-any-available-wi-fi-network/
 

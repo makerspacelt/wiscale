@@ -1,6 +1,6 @@
 #pragma once
 #include "msScale.hpp"
-#include "temperature.h"
+#include "msTemperature.hpp"
 
 class DeviceState
 {

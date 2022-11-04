@@ -1,4 +1,4 @@
-#include "temperature.h"
+#include "msTemperature.hpp"
 MS_Ds18b20 Thermometers[USED_TEMPERATURE_SENSORS] = {};
 
 DallasTemperature initThermometer(Ds18b20Config config)

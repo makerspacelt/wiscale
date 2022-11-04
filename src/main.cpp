@@ -6,7 +6,7 @@
 
 #include "deviceState.hpp"
 #include "gpio.h"
-#include "temperature.h"
+#include "msTemperature.hpp"
 
 #define MCU_DONE_PIN 12 // D6
 #define CHARGING 13     // D7
