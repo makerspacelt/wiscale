@@ -14,17 +14,6 @@
 
 Ticker timer;
 
-void ReadThermometers()
-{
-    Serial.println("Reading thermometers");
-    for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
-    {
-        MS_Ds18b20 sensor = getMSThermometer(Config.thermometers[i]);
-        // Read and save to ms_scale
-        readThermometer(sensor.config, 0, true);
-        State.Thermometers[i] = sensor;
-    }
-}
 void PrintScaleValues()
 {
 
@@ -68,7 +57,7 @@ void Reconfigure()
 {
     Serial.println("Reconfiguring");
 #ifdef USE_DS18
-    initThermometers(Config.thermometers);
+    State.ReconfigureThermometers(Config.thermometers);
 #endif // USE_DS18
 #ifdef USE_SCALE
     State.ReconfigureScales(Config.scales);
@@ -128,7 +117,7 @@ void loop()
 #endif // USE_SCALE
 
 #ifdef USE_DS18
-    ReadThermometers();
+    State.ReadThermometers();
 #endif // USE_DS18
 
     PrintScaleValues();

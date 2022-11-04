@@ -18,37 +18,26 @@ struct Ds18b20Config
     uint8_t sensorsInBus = 1;
 };
 
-struct MS_Ds18b20
+class MS_Ds18b20
 {
+public:
     Ds18b20Config config = {};
+    OneWire oneWire;
     DallasTemperature thermometer;
     float temperature = 0;
 
 #ifdef USES_MULTIPLE_ON_BUS
     float temperatures[];
 #endif // DEBUG
+
+    MS_Ds18b20(void);
+    MS_Ds18b20(struct Ds18b20Config deviceConfig);
+
+    // Checks if name is valid
+    bool isSensorValid(MS_Ds18b20 thermometer);
+
+    // Reads Thermometer value. If save == true, saves it to MS_Ds18b20 grams.
+    float readThermometer(uint16_t sensorId = 0, bool save = false);
 };
 
-// Sets up one wire bus with a single scale
-DallasTemperature initThermometer(Ds18b20Config config);
-
-// Sets up pins and gains of all of the thermometers
-void initThermometers(struct Ds18b20Config configs[]);
-
-// Clears memory from previous configs.
-void deInitThermometers();
-
-// Checks if name is valid
-bool isScaleValid(MS_Ds18b20 thermometer);
-
-// Returns thermometer and config container
-MS_Ds18b20 getMSThermometer(Ds18b20Config config);
-
-// Returns regular thermometer
-DallasTemperature getThermometer(Ds18b20Config config);
-
-void saveThermometerValue(Ds18b20Config config, float value);
-
-// Reads Thermometer value. If save == true, saves it to MS_Ds18b20 grams.
-float readThermometer(Ds18b20Config config, uint16_t sensorId = 0, bool save = false);
 #endif

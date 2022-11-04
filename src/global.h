@@ -43,7 +43,7 @@ struct GlobalConfig
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
     Hx711Config scales[USED_SCALES] = {};
-    Ds18b20Config thermometers[USED_TEMPERATURE_SENSORS] = {};
+    Ds18b20Config thermometers[USED_TEMPERATURE_SENSORS];
 };
 
 extern DeviceState State;
