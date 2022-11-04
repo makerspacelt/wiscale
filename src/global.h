@@ -1,21 +1,19 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 #include "common.h"
-#include "scale.h"
+#include "deviceState.hpp"
+#include "msScale.hpp"
 #include "stdint.h"
 #include "temperature.h"
 
-//#define CONFIGURE_WIFI true
-#define WIFI_SSID "SSID"
-#define WIFI_PASS "PASS"
 // todo https://ubidots.com/blog/connect-your-esp8266-to-any-available-wi-fi-network/
 
 #define EXECUTION_TIMEOUT 10
 #define MAX_GPIO_PINS 24
 #define MAX_ADC_PINS 2
 #define USE_GPIO //
-#define USE_ADC // Working
-#define USE_DS18
+#define USE_ADC  // Working
+//#define USE_DS18
 #define USE_SCALE
 
 struct GPIOConfig
@@ -41,23 +39,14 @@ struct ADCConfig
 struct GlobalConfig
 {
     int battery_range = 4860;
-    char name[MAX_NAME_LENGTH]="ESP-D4EFA3";
+    char name[MAX_NAME_LENGTH] = "ESP-D4EFA3";
     GPIOConfig gpio[MAX_GPIO_PINS] = {}; // structs must be initialized with {} to prevent garbage data
     ADCConfig adc[MAX_ADC_PINS] = {};
     Hx711Config scales[USED_SCALES] = {};
     Ds18b20Config thermometers[USED_TEMPERATURE_SENSORS] = {};
 };
 
-struct GlobalState
-{
-    MS_HX711_Scale scales[USED_SCALES] = {};
-    float battery = 0;
-    MS_Ds18b20 thermometers[USED_TEMPERATURE_SENSORS] = {};
-    int charging = 0;
-    int configured = 0;
-};
-
-extern GlobalState State;
+extern DeviceState State;
 extern GlobalConfig Config;
 
 #endif // GLOBAL_H

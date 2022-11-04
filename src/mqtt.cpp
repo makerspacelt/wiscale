@@ -1,6 +1,6 @@
 #include "mqtt.h"
-#include "power.h"
 #include "ArduinoJson.h"
+#include "power.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -31,7 +31,8 @@ String getTemperatureData()
     // TODO get thermometers data
     return "";
 }
-char* getTemperatureJObject(MS_HX711_Scale scale){
+char *getTemperatureJObject(MS_HX711_Scale scale)
+{
     // TODO get thermometers object
     return "";
 }
@@ -65,7 +66,7 @@ String getScaleData()
     // add some values
     for (uint8_t i = 0; i < USED_SCALES; i++)
     {
-        array.add(getScaleJObject(State.scales[i]));
+        array.add(getScaleJObject(State.Scales[i]));
     }
 
     // serialize the object and send the result to Serial
@@ -80,7 +81,7 @@ void sendMessage()
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, getTemperatureData(), State.charging);
+        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.Battery, State.Configured, getTemperatureData(), State.Charging);
         sprintf(topic, "scale/%s/data", Config.name);
         mqtt.publish(topic, msg, true);
     }
@@ -99,8 +100,8 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
     for (uint8_t i = 0; i < array.size(); i++)
     {
-        const char* name=array[i]["name"];
-        strcpy(Config.gpio[i].name , name);
+        const char *name = array[i]["name"];
+        strcpy(Config.gpio[i].name, name);
         Config.gpio[i].defaultValue = array[i]["default"];
         Config.gpio[i].inverted = array[i]["invert"];
         Config.gpio[i].mode = array[i]["mode"];
@@ -121,8 +122,8 @@ void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
     for (uint8_t i = 0; i < array.size(); i++)
     {
-        const char* name=array[i]["name"];
-        strcpy(Config.adc[i].name , name);
+        const char *name = array[i]["name"];
+        strcpy(Config.adc[i].name, name);
         Config.adc[i].readingsForMean = array[i]["readings"];
         Config.adc[i].offset = array[i]["offset"];
         Config.adc[i].multiplier = array[i]["multi"];
@@ -145,15 +146,15 @@ void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
     Serial.println("Parsing scale sensor config");
     JsonArray array = doc["hx711"].as<JsonArray>();
     char msg[5];
-    sprintf (msg, "Found scale sensors %d",array.size());
+    sprintf(msg, "Found scale sensors %d", array.size());
     Serial.println(msg);
     for (uint8_t i = 0; i < array.size(); i++)
     {
         JsonObject json = array[i];
         Hx711Config scaleConfig = {};
-        const char* name=json["name"];
+        const char *name = json["name"];
         Serial.println(name);
-        strcpy(scaleConfig.name , name);
+        strcpy(scaleConfig.name, name);
         scaleConfig.pin_sck = json["pin_sck"];
         scaleConfig.pin_dt = json["pin_dt"];
         scaleConfig.gain = json["gain"];
@@ -168,13 +169,13 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
     Serial.println("Parsing tempreture sensor config");
     JsonArray array = doc["ds18b20"].as<JsonArray>();
     char msg[5];
-    sprintf (msg, "Found temperature sensors%d",array.size());
+    sprintf(msg, "Found temperature sensors%d", array.size());
     Serial.println(msg);
     for (uint8_t i = 0; i < array.size(); i++)
     {
         JsonObject json = array[i];
         Ds18b20Config thermometerConfig = {};
-        const char* name=json["name"];
+        const char *name = json["name"];
         Serial.println(name);
         strcpy(thermometerConfig.name, name);
         thermometerConfig.pin = json["pin"];
@@ -186,14 +187,15 @@ void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 
 void configCallback(char *topic, byte *payload, unsigned int length)
 {
-    if(State.configured == 1){
+    if (State.Configured == 1)
+    {
         Serial.println("New config received. Restart");
         restart();
     }
     Serial.println("Received from topic");
     StaticJsonDocument<JSON_BUFFER_SIZE> doc;
     DeserializationError error = deserializeJson(doc, payload);
-    serializeJson(doc,Serial);
+    serializeJson(doc, Serial);
     if (error)
     {
         Serial.print(F("deserializeJson() failed: "));
@@ -203,28 +205,28 @@ void configCallback(char *topic, byte *payload, unsigned int length)
     // Get hostname
     Serial.println("Host name before");
     Serial.println(Config.name);
-    strcpy(Config.name,doc["host"]);  
+    strcpy(Config.name, doc["host"]);
     Serial.println("Host name");
     Serial.println(Config.name);
     delay(2000);
-    // Get gpio config
-    #ifdef USE_GPIO    
+// Get gpio config
+#ifdef USE_GPIO
     ParseGPIOConfig(doc);
-    #endif // USE_GPIO
-    
-    #ifdef USE_ADC
-    
+#endif // USE_GPIO
+
+#ifdef USE_ADC
+
     ParseADCConfig(doc);
-    #endif // USE_ADC
+#endif // USE_ADC
 
-    #ifdef USE_SCALE
-    
+#ifdef USE_SCALE
+
     parseHx711Config(doc);
-    #endif // USE_SCALE
-   
-   #ifdef USE_DS18   
-    parseDs18b20Config(doc);
-   #endif // USE_DS18
+#endif // USE_SCALE
 
-    State.configured = 1; 
+#ifdef USE_DS18
+    parseDs18b20Config(doc);
+#endif // USE_DS18
+
+    State.Configured = 1;
 }
