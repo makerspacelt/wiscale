@@ -22,8 +22,6 @@ class MS_Ds18b20
 {
 public:
     Ds18b20Config config = {};
-    OneWire oneWire;
-    DallasTemperature thermometer;
     float temperature = 0;
 
 #ifdef USES_MULTIPLE_ON_BUS
