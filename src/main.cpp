@@ -7,13 +7,17 @@
 #include "gpio.h"
 #include "scale.h"
 #include "temperature.h"
+#include "ConfigManager.h"
 
 #define MCU_DONE_PIN  12 //D6
 #define CHARGING 13 //D7
 #define BAT 17 // A0
 
-
-
+struct Config { 
+    char name[20]; 
+    char password[20] = "pawa2500";
+} config;
+ConfigManager configManager;
 Ticker timer;
 
 void ReadScales(){
@@ -48,16 +52,6 @@ void PrintScaleValues()
     }
 }
 
-void initWifi() {
-    //Serial.setDebugOutput(true);
-    //system_phy_set_powerup_option(3);
-    #ifdef CONFIGURE_WIFI
-        WiFi.persistent(true);
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(WIFI_SSID, WIFI_PASS);
-    #endif
-}
-
 // ===============================================
 
 void setup() {
@@ -65,11 +59,19 @@ void setup() {
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
-    timer.attach(EXECUTION_TIMEOUT, selfDestruct);
+ //   timer.attach(EXECUTION_TIMEOUT, selfDestruct);
     pinMode(MCU_DONE_PIN, OUTPUT);
     digitalWrite(MCU_DONE_PIN, LOW);
-    
-    initWifi();
+
+    configManager.setAPName(WiFi.hostname().c_str());
+    configManager.setAPFilename("/index.html");
+    if(strlen(config.password) > 0)
+    {
+        configManager.setAPPassword(config.password);
+    }
+    configManager.addParameter("name", config.name, 20);
+    configManager.addParameter("password", config.password, 20, set);
+    configManager.begin(config);
  }
 
 
@@ -94,9 +96,11 @@ void PowerDown(){
 }
 void loop() {
 
-    Serial.print("Wifi connecting: ");
+    configManager.loop();
+    Serial.print("Wifi not configured, waiting: ");
     while ( WiFi.status() != WL_CONNECTED ) {
         delay(10);
+        configManager.loop();
         Serial.print(".");
     }
     Serial.println();
@@ -117,7 +121,7 @@ void loop() {
     ReadThermometers();
 
     PrintScaleValues();
-    Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers);
+    //Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers);
     sendMessage();
 
     PowerDown();

@@ -80,7 +80,7 @@ void sendMessage()
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, getTemperatureData(), State.charging);
+     //   sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.battery, State.configured, getTemperatureData(), State.charging);
         sprintf(topic, "scale/%s/data", Config.name);
         mqtt.publish(topic, msg, true);
     }
