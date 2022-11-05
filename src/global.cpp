@@ -1,5 +1,5 @@
 #include "global.h"
 
-GlobalState State;
+DeviceState State;
 GlobalConfig Config;
 
