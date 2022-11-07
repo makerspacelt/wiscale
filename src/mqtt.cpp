@@ -50,15 +50,11 @@ String getScaleJObject(MS_HX711_Scale scale)
     serializeJson(doc, json_string);
     return json_string;
 }
-String getScaleData()
+String getScaleData(MS_HX711_Scale scales[])
 {
-
-    // compute the required size
-    const size_t CAPACITY = JSON_ARRAY_SIZE(USED_SCALES);
-
-    // allocate the memory for the document
-    StaticJsonDocument<CAPACITY> doc;
-
+      // allocate the memory for the document
+    DynamicJsonDocument doc(2048);
+    
     // create an empty array
     JsonArray array = doc.to<JsonArray>();
 
@@ -66,7 +62,7 @@ String getScaleData()
     // add some values
     for (uint8_t i = 0; i < USED_SCALES; i++)
     {
-        array.add(getScaleJObject(State.Scales[i]));
+        array.add(getScaleJObject(scales[i]));
     }
 
     // serialize the object and send the result to Serial
@@ -81,7 +77,7 @@ void sendMessage()
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(), State.Battery, State.Configured, getTemperatureData(), State.Charging);
+        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(State.Scales), State.Battery, State.Configured, getTemperatureData(), State.Charging);
         sprintf(topic, "scale/%s/data", Config.name);
         mqtt.publish(topic, msg, true);
     }
