@@ -39,7 +39,7 @@ char *getTemperatureJObject(MS_HX711_Scale scale)
 String getScaleJObject(MS_HX711_Scale scale)
 {
     // allocate the memory for the document
-    const size_t CAPACITY = JSON_OBJECT_SIZE(1);
+    const size_t CAPACITY = JSON_OBJECT_SIZE(2);
     StaticJsonDocument<CAPACITY> doc;
     // create an object
     JsonObject object = doc.to<JsonObject>();
