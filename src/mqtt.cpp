@@ -48,6 +48,7 @@ String getScaleJObject(MS_HX711_Scale scale)
     // serialize the object and send the result to Serial
     String json_string;
     serializeJson(doc, json_string);
+    serializeJson(doc, Serial);
     return json_string;
 }
 String getScaleData(MS_HX711_Scale scales[])
@@ -70,16 +71,31 @@ String getScaleData(MS_HX711_Scale scales[])
     serializeJson(doc, json_string);
     return json_string;
 }
+String getMqttMsg(){
+  // allocate the memory for the document
+    DynamicJsonDocument doc(2048);
 
+    JsonObject object = doc.to<JsonObject>();
+    object["host"] = Config.name;
+    object["scales"] = getScaleData(State.Scales);
+    object["battery"]= State.Battery;
+    object["configured"]=State.Configured;
+    object["temperatures"]=getTemperatureData();
+    object["charging"]=State.Charging;
+
+   String json_string;
+    serializeJson(doc, json_string);
+    serializeJson(doc, Serial);
+    return json_string;
+}
 void sendMessage()
 {
     if (mqtt.connected())
     {
         char msg[254];
         char topic[64];
-        sprintf(msg, "{\"host\":\"%s\",\"scales\":%s,\"battery\":%f,\"configured\":%d,\"temperatures\":%s,\"charging\":%d}", Config.name, getScaleData(State.Scales), State.Battery, State.Configured, getTemperatureData(), State.Charging);
         sprintf(topic, "scale/%s/data", Config.name);
-        mqtt.publish(topic, msg, true);
+        mqtt.publish(topic, getMqttMsg().c_str(), true);
     }
 }
 
