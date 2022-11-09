@@ -6,8 +6,6 @@
 #include "msTemperature.hpp"
 #include "stdint.h"
 
-// todo https://ubidots.com/blog/connect-your-esp8266-to-any-available-wi-fi-network/
-
 #define EXECUTION_TIMEOUT 10
 #define MAX_GPIO_PINS 24
 #define MAX_ADC_PINS 2

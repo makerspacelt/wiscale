@@ -6,11 +6,18 @@
 
 #include "deviceState.hpp"
 #include "gpio.h"
+#include "ConfigManager.h"
 #include "msTemperature.hpp"
 
-#define MCU_DONE_PIN 12 // D6
-#define CHARGING 13     // D7
-#define BAT 17          // A0
+#define MCU_DONE_PIN  12 //D6
+#define CHARGING 13 //D7
+#define BAT 17 // A0
+
+struct Config { 
+    char name[20]; 
+    char password[20];
+} config;
+ConfigManager configManager;
 
 Ticker timer;
 
@@ -27,17 +34,6 @@ void PrintScaleValues()
     }
 }
 
-void initWifi()
-{
-// Serial.setDebugOutput(true);
-// system_phy_set_powerup_option(3);
-#ifdef CONFIGURE_WIFI
-    WiFi.persistent(true);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-#endif
-}
-
 // ===============================================
 
 void setup()
@@ -46,12 +42,20 @@ void setup()
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
-    // timer.attach(EXECUTION_TIMEOUT, selfDestruct);
+ //   timer.attach(EXECUTION_TIMEOUT, selfDestruct);
     pinMode(MCU_DONE_PIN, OUTPUT);
     digitalWrite(MCU_DONE_PIN, LOW);
+    
+    char *wifiName = (char *)"";
+    sprintf(wifiName, "Scale %s AP", WiFi.hostname().c_str());
 
-    initWifi();
-}
+    configManager.setAPName(wifiName);
+    configManager.setAPPassword("adminadmin");
+    configManager.setAPFilename("/index.html");
+    configManager.addParameter("name", config.name, 20);
+    configManager.addParameter("password", config.password, 20, set);
+    configManager.begin(config);
+ }
 
 void Reconfigure()
 {
@@ -81,14 +85,15 @@ void PowerDown()
 void loop()
 {
 
-    Serial.print("Wifi connecting: ");
-    while (WiFi.status() != WL_CONNECTED)
-    {
+    configManager.loop();
+    Serial.print("Wifi not configured, waiting: ");
+    while ( WiFi.status() != WL_CONNECTED ) {
         delay(10);
+        configManager.loop();
         Serial.print(".");
     }
     Serial.println();
-
+    Serial.println(WiFi.localIP().toString());
     Serial.println("Connecting to MQTT broker");
     setupMqtt();
 
@@ -124,5 +129,5 @@ void loop()
     Serial.printf("Sending message: %.3fV, %.3f C\n", State.Battery, State.Thermometers[0].temperature);
     sendMessage();
 
-    PowerDown();
+   // PowerDown();
 }
