@@ -15,7 +15,7 @@
 
 struct Config { 
     char name[20]; 
-    char password[20] = "pawa2500";
+    char password[20];
 } config;
 ConfigManager configManager;
 Ticker timer;
@@ -62,13 +62,13 @@ void setup() {
  //   timer.attach(EXECUTION_TIMEOUT, selfDestruct);
     pinMode(MCU_DONE_PIN, OUTPUT);
     digitalWrite(MCU_DONE_PIN, LOW);
+    
+    char *wifiName = (char *)"";
+    sprintf(wifiName, "Scale %d AP", system_get_chip_id());
 
-    configManager.setAPName(WiFi.hostname().c_str());
+    configManager.setAPName(wifiName);
+    configManager.setAPPassword("adminadmin");
     configManager.setAPFilename("/index.html");
-    if(strlen(config.password) > 0)
-    {
-        configManager.setAPPassword(config.password);
-    }
     configManager.addParameter("name", config.name, 20);
     configManager.addParameter("password", config.password, 20, set);
     configManager.begin(config);
