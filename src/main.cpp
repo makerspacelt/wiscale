@@ -1,13 +1,13 @@
-#include <Arduino.h>
 #include "Ticker.h"
+#include "adc.h"
 #include "mqtt.h"
 #include "power.h"
-#include "adc.h"
+#include <Arduino.h>
 
+#include "deviceState.hpp"
 #include "gpio.h"
-#include "scale.h"
-#include "temperature.h"
 #include "ConfigManager.h"
+#include "msTemperature.hpp"
 
 #define MCU_DONE_PIN  12 //D6
 #define CHARGING 13 //D7
@@ -18,44 +18,27 @@ struct Config {
     char password[20];
 } config;
 ConfigManager configManager;
+
 Ticker timer;
 
-void ReadScales(){
-    for (uint16_t i = 0; i < USED_SCALES; i++)
-    {
-        MS_HX711_Scale sensor=getMSScale(Config.scales[i]);
-        // Read and save to ms_scale
-        readScale(sensor.config,true);
-        State.scales[i]=sensor;
-    }    
-}
-void ReadThermometers(){
-    for (uint16_t i = 0; i < USED_TEMPERATURE_SENSORS; i++)
-    {
-        MS_Ds18b20 sensor=getMSThermometer(Config.thermometers[i]);
-        // Read and save to ms_scale
-        readThermometer(sensor.config,0,true);
-        State.thermometers[i]=sensor;
-    }    
-}
 void PrintScaleValues()
 {
-    
+
     for (uint16_t i = 0; i < USED_SCALES; i++)
     {
-        char scaleInfo[30];
-        MS_HX711_Scale ms_scale = getMSScale(Config.scales[i]);
+        char scaleInfo[50];
+        MS_HX711_Scale ms_scale = State.Scales[i];
         // Read and save to ms_scale
-        readScale(ms_scale.config, true);
-        sprintf(scaleInfo,"Scale name: %s, value: %3.2f",ms_scale.config.name,ms_scale.grams);
+        sprintf(scaleInfo, "Scale name: %s, value: %3.2f", ms_scale.config.name, ms_scale.grams);
         Serial.println(scaleInfo);
     }
 }
 
 // ===============================================
 
-void setup() {
-    pinMode(D0,INPUT); // Workaround for using wrong pin.
+void setup()
+{
+    pinMode(D0, INPUT); // Workaround for using wrong pin.
     Serial.begin(76800);
     Serial.println("\nBooting... ");
 
@@ -64,7 +47,7 @@ void setup() {
     digitalWrite(MCU_DONE_PIN, LOW);
     
     char *wifiName = (char *)"";
-    sprintf(wifiName, "Scale %d AP", system_get_chip_id());
+    sprintf(wifiName, "Scale %s AP", WiFi.hostname().c_str());
 
     configManager.setAPName(wifiName);
     configManager.setAPPassword("adminadmin");
@@ -74,16 +57,21 @@ void setup() {
     configManager.begin(config);
  }
 
-
-void Reconfigure(){
+void Reconfigure()
+{
     Serial.println("Reconfiguring");
-    initThermometers(Config.thermometers);
-    initScales(Config.scales);
+#ifdef USE_DS18
+    State.ReconfigureThermometers(Config.thermometers);
+#endif // USE_DS18
+#ifdef USE_SCALE
+    State.ReconfigureScales(Config.scales);
+#endif // USE_SCALE
 }
-void PowerDown(){
-    deInitScales();
+void PowerDown()
+{
     Serial.print("Shutting down: ");
-    for (int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         loopMqtt();
         delay(10);
         Serial.print(".");
@@ -94,7 +82,8 @@ void PowerDown(){
     delay(10);
     selfDestruct();
 }
-void loop() {
+void loop()
+{
 
     configManager.loop();
     Serial.print("Wifi not configured, waiting: ");
@@ -104,25 +93,41 @@ void loop() {
         Serial.print(".");
     }
     Serial.println();
-
+    Serial.println(WiFi.localIP().toString());
     Serial.println("Connecting to MQTT broker");
     setupMqtt();
 
     Serial.print("Waiting for configuration: ");
-    while ( State.configured == 0 ) {
+    while (State.Configured == 0)
+    {
         delay(10);
         loopMqtt();
         Serial.print(".");
-    }    
+    }
     Reconfigure();
 
-    ReadScales();
+    // Get gpio config
+#ifdef USE_GPIO
+//
+#endif // USE_GPIO
+
+#ifdef USE_ADC
+
     readBattery();
-    ReadThermometers();
+#endif // USE_ADC
+
+#ifdef USE_SCALE
+
+    State.ReadScales();
+#endif // USE_SCALE
+
+#ifdef USE_DS18
+    State.ReadThermometers();
+#endif // USE_DS18
 
     PrintScaleValues();
-    //Serial.printf("Sending message: %.3fV, %.3f C\n", State.battery, State.thermometers);
+    Serial.printf("Sending message: %.3fV, %.3f C\n", State.Battery, State.Thermometers[0].temperature);
     sendMessage();
 
-    PowerDown();
+   // PowerDown();
 }
