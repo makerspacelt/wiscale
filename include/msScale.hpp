@@ -14,6 +14,14 @@ struct Hx711Config
 	uint16_t readings = 30;
 };
 
+struct HX711Debug
+{
+    int readings = 0;
+    uint8_t gain = 32;
+    float pre_offset = 0;
+    float pre_multi = 0;
+};
+
 // Sets up pins and gains of a single scale
 HX711 initHX711Scale(struct Hx711Config config);
 
@@ -22,6 +30,7 @@ class MS_HX711_Scale
 public:
 	Hx711Config config = {};
 	HX711 scale;
+	HX711Debug debug = {};
 	float grams = 0;
 
 	MS_HX711_Scale(void);

@@ -8,9 +8,6 @@ HX711 initHX711Scale(struct Hx711Config config)
 				config.pin_sck,
 				config.gain);
 	scale.power_up();
-
-	scale.set_scale(config.multi);
-	scale.set_offset(config.offset);
 	return scale;
 }
 
@@ -46,10 +43,14 @@ float MS_HX711_Scale::readScale(bool save)
 	float _grams = scale.get_units(config.readings);
 	Serial.print("Read weight: ");
 	Serial.println(grams);
+	debug.pre_offset = _grams;
+	_grams += config.offset;
+	debug.pre_multi = _grams;
+	_grams *= config.multi;
 	if (save)
 	{
 		grams = _grams;
 	}
-
+	
 	return grams;
 }
