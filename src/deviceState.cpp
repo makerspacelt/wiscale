@@ -65,7 +65,7 @@ void DeviceState::ReadThermometers(void)
 	}
 }
 void DeviceState::ReconfigureAdc(ADCConfig configs[]){
-	Serial.println("Reconfiguring thermometers");
+	Serial.println("Reconfiguring ADCs");
 
 	for (uint8_t i = 0; i < USED_ADC_PINS; i++)
 	{
