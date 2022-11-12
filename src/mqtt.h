@@ -11,6 +11,7 @@ void setupMqtt();
 void loopMqtt();
 void destroyMqtt();
 void sendMessage();
+void sendDebugMessage();
 void configCallback(char* topic, byte* payload, unsigned int length);
 
 #endif // MQTT_H

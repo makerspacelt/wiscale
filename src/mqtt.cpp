@@ -26,76 +26,142 @@ void destroyMqtt()
 {
     mqtt.disconnect();
 }
-String getTemperatureData()
+String getTemperatureJObject(MS_Ds18b20 sensor)
 {
-    // TODO get thermometers data
-    return "";
+    char element[64];
+    sprintf(element, "{\"%s\":\"%f\"}", sensor.config.name, sensor.temperature);
+    return element;
 }
-char *getTemperatureJObject(MS_HX711_Scale scale)
+String getTemperatureData(MS_Ds18b20 sensors[])
 {
-    // TODO get thermometers object
-    return "";
+    char element[256];
+    sprintf(element, "\"temperature\" : [");
+    for(uint8_t i = 0; i < USED_TEMPERATURE_SENSORS; i++){
+        strcat(element, getTemperatureJObject(sensors[i]).c_str());
+        if(i < USED_TEMPERATURE_SENSORS - 1)
+            strcat(element, ",");
+    }
+    strcat(element, "]");
+    return element;
 }
+String getTemperatureDebugJObject(MS_Ds18b20 sensor)
+{
+    char element[256];
+    sprintf(element, "{\"pre_multi\":\"%f\", \"pre_offset\":\"%f\", \"readings\":\"%d\"}", sensor.debug.pre_multi, sensor.debug.pre_offset, sensor.debug.readings);
+    return element;
+}
+String getTemperatureDebugData(MS_Ds18b20 sensors[])
+{
+    char element[512];
+    sprintf(element, "\"temperature\" : [");
+    for(uint8_t i = 0; i < USED_TEMPERATURE_SENSORS; i++){
+        strcat(element, getTemperatureDebugJObject(sensors[i]).c_str());
+        if(i < USED_TEMPERATURE_SENSORS - 1)
+            strcat(element, ",");
+    }
+    strcat(element, "]");
+    return element;
+}
+
 String getScaleJObject(MS_HX711_Scale scale)
 {
-    // allocate the memory for the document
-    const size_t CAPACITY = JSON_OBJECT_SIZE(2);
-    StaticJsonDocument<CAPACITY> doc;
-    // create an object
-    JsonObject object = doc.to<JsonObject>();
-    object[scale.config.name] = scale.grams;
-
-    // serialize the object and send the result to Serial
-    String json_string;
-    serializeJson(doc, json_string);
-    serializeJson(doc, Serial);
-    return json_string;
+    char element[64];
+    sprintf(element, "{\"%s\":\"%f\"}", scale.config.name, scale.grams);
+    return element;
 }
 String getScaleData(MS_HX711_Scale scales[])
 {
-      // allocate the memory for the document
-    DynamicJsonDocument doc(2048);
-    
-    // create an empty array
-    JsonArray array = doc.to<JsonArray>();
-
-    JsonObject scaleObject;
-    // add some values
-    for (uint8_t i = 0; i < USED_SCALES; i++)
-    {
-        array.add(getScaleJObject(scales[i]));
+    char element[256];
+    sprintf(element, "\"scales\" : [");
+    for(uint8_t i = 0; i < USED_SCALES; i++){
+        strcat(element, getScaleJObject(scales[i]).c_str());
+        if(i < USED_SCALES - 1)
+            strcat(element, ",");
     }
-
-    // serialize the object and send the result to Serial
-    String json_string;
-    serializeJson(doc, json_string);
-    return json_string;
+    strcat(element, "]");
+    return element;
+}
+String getScaleDebugJObject(MS_HX711_Scale scale)
+{
+    char element[512];
+    sprintf(element, "{\"readings\":\"%d\", \"gain\":\"%d\", \"pre_offset\":\"%f\", \"pre_multi\":\"%f\"}", 
+    scale.debug.readings, scale.debug.gain, scale.debug.pre_offset, scale.debug.pre_multi);
+    return element;
+}
+String getScaleDebugData(MS_HX711_Scale scales[])
+{
+    char element[1024];
+    sprintf(element, "\"scales\" : [");
+    for(uint8_t i = 0; i < USED_SCALES; i++){
+        strcat(element, getScaleDebugJObject(scales[i]).c_str());
+        if(i < USED_SCALES - 1)
+            strcat(element, ",");
+    }
+    strcat(element, "]");
+    return element;
+}
+String getAdcJObject(MS_ADC adc)
+{
+    char element[64];
+    sprintf(element, "{\"%s\":\"%f\"}", adc.config.name, adc.voltage);
+    return element;
+}
+String getAdcData(MS_ADC adcs[])
+{
+    char element[256];
+    sprintf(element, "\"adc\" : [");
+    for(uint8_t i = 0; i < USED_ADC_PINS; i++){
+        strcat(element, getAdcJObject(adcs[i]).c_str());
+        if(i < USED_ADC_PINS - 1)
+            strcat(element, ",");
+    }
+    strcat(element, "]");
+    return element;
+}
+String getAdcDebugJObject(MS_ADC adc)
+{
+    char element[256];
+    sprintf(element, "{\"readings\":\"%d\", \"pre_offset\":\"%f\", \"pre_multi\":\"%f\"}", adc.debug.readings, adc.debug.pre_offset, adc.debug.pre_multi);
+    return element;
+}
+String getAdcDebugData(MS_ADC adcs[])
+{
+    char element[512];
+    sprintf(element, "\"adc\" : [");
+    for(uint8_t i = 0; i < USED_ADC_PINS; i++){
+        strcat(element, getAdcDebugJObject(adcs[i]).c_str());
+        if(i < USED_ADC_PINS - 1)
+            strcat(element, ",");
+    }
+    strcat(element, "]");
+    return element;
 }
 String getMqttMsg(){
-  // allocate the memory for the document
-    DynamicJsonDocument doc(2048);
-
-    JsonObject object = doc.to<JsonObject>();
-    object["host"] = Config.name;
-    object["scales"] = getScaleData(State.Scales);
-    object["battery"]= State.Battery;
-    object["configured"]=State.Configured;
-    object["temperatures"]=getTemperatureData();
-    object["charging"]=State.Charging;
-
-   String json_string;
-    serializeJson(doc, json_string);
-    serializeJson(doc, Serial);
-    return json_string;
+    char element[1024];
+    sprintf(element, "{\"host\":\"%s\",%s,\"configured\":%d,\"charging\":%d, %s, %s}", 
+    Config.name,  getAdcData(State.Adcs).c_str(), State.Configured, State.Charging, getScaleData(State.Scales).c_str(), getTemperatureData(State.Thermometers).c_str());
+    return element;
+}
+String getMqttDebugMsg(){
+    char element[1024];
+    sprintf(element, "{\"host\":\"%s\", %s, %s, %s}", Config.name, getTemperatureDebugData(State.Thermometers).c_str(), getAdcDebugData(State.Adcs).c_str(), getScaleDebugData(State.Scales).c_str());
+    return element;
 }
 void sendMessage()
 {
     if (mqtt.connected())
     {
-        char msg[254];
         char topic[64];
-        sprintf(topic, "scale/%s/data", Config.name);
-        mqtt.publish(topic, getMqttMsg().c_str(), true);
+        sprintf(topic, "device/%s/data", Config.name);
+        mqtt.publish(topic, getMqttMsg().c_str(), false);
+    }
+}
+void sendDebugMessage(){
+    if (mqtt.connected())
+    {
+        char topic[64];
+        sprintf(topic, "device/%s/debug", Config.name);
+        mqtt.publish(topic, getMqttDebugMsg().c_str(), false);
     }
 }
 
@@ -123,24 +189,25 @@ void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 }
 void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
 {
-    Serial.println("Parsing ADC config");
+    Serial.println("Parsing adc config");
     JsonArray array = doc["adc"].as<JsonArray>();
-
-    if (array.size() > MAX_ADC_PINS)
-    {
-        Serial.println("Too many pins provided in ADC config!");
-        return;
-    }
-
+    char msg[5];
+    sprintf(msg, "Found adc sensors%d", array.size());
+    Serial.println(msg);
     for (uint8_t i = 0; i < array.size(); i++)
     {
-        const char *name = array[i]["name"];
-        strcpy(Config.adc[i].name, name);
-        Config.adc[i].readingsForMean = array[i]["readings"];
-        Config.adc[i].offset = array[i]["offset"];
-        Config.adc[i].multiplier = array[i]["multi"];
-        Config.adc[i].pin = array[i]["pin"];
-        Config.adc[i].configured = 1;
+        JsonObject json = array[i];
+        ADCConfig adcConfig = {};
+        const char *name = json["name"];
+        const char *mode = json["mode"];
+        Serial.println(name);
+        strcpy(adcConfig.name, name);
+        strcpy(adcConfig.mode, mode);
+        adcConfig.pin = json["pin"];
+        adcConfig.offset = json["offset"];
+        adcConfig.readings = json["readings"];
+        adcConfig.multi = json["multi"];
+        Config.adc[i] = adcConfig;
     }
 }
 /// @brief Gets first JSon object from array. Can be used  only if there is a single element.
@@ -215,12 +282,8 @@ void configCallback(char *topic, byte *payload, unsigned int length)
         return;
     }
     // Get hostname
-    Serial.println("Host name before");
-    Serial.println(Config.name);
     strcpy(Config.name, doc["host"]);
-    Serial.println("Host name");
-    Serial.println(Config.name);
-    delay(2000);
+
 // Get gpio config
 #ifdef USE_GPIO
     ParseGPIOConfig(doc);

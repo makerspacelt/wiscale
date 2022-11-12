@@ -17,12 +17,19 @@ struct Ds18b20Config
     /// @brief As this is one wire bus, it can connect up to 127 sensors
     uint8_t sensorsInBus = 1;
 };
+struct DS18b20Debug
+{
+    int readings = 0;
+    float pre_offset = 0;
+    float pre_multi = 0;
+};
 
 class MS_Ds18b20
 {
 public:
     Ds18b20Config config = {};
     float temperature = 0;
+    DS18b20Debug debug = {};
 
 #ifdef USES_MULTIPLE_ON_BUS
     float temperatures[];

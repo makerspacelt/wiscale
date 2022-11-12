@@ -47,6 +47,10 @@ float MS_Ds18b20::readThermometer(uint16_t sensorId, bool save)
 		Serial.println("Error: Could not read temperature data");
 	}
 	// TODO multiple reads on bus
+	debug.pre_offset = value;
+	value += config.offset;
+	debug.pre_multi = value;
+	value *= config.multi;
 	if (save)
 	{
 		temperature = value;

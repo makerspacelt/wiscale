@@ -1,5 +1,4 @@
 #include "Ticker.h"
-#include "adc.h"
 #include "mqtt.h"
 #include "power.h"
 #include <Arduino.h>
@@ -66,6 +65,9 @@ void Reconfigure()
 #ifdef USE_SCALE
     State.ReconfigureScales(Config.scales);
 #endif // USE_SCALE
+#ifdef USE_ADC
+    State.ReconfigureAdc(Config.adc);
+#endif
 }
 void PowerDown()
 {
@@ -113,7 +115,7 @@ void loop()
 
 #ifdef USE_ADC
 
-    readBattery();
+    State.ReadAdc();
 #endif // USE_ADC
 
 #ifdef USE_SCALE
@@ -126,8 +128,10 @@ void loop()
 #endif // USE_DS18
 
     PrintScaleValues();
-    Serial.printf("Sending message: %.3fV, %.3f C\n", State.Battery, State.Thermometers[0].temperature);
+    Serial.printf("Sending message\n");
     sendMessage();
+    Serial.printf("Sending debug message\n");
+    sendDebugMessage();
 
-   // PowerDown();
+    //PowerDown();
 }
