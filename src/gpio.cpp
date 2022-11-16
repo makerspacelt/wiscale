@@ -1,26 +1,39 @@
-#include "gpio.h"
+#include "global.h"
+#include "gpio.hpp"
 
-uint8_t ReadGPIO(uint8_t pin){
-	return digitalRead(pin);
+GPIO::GPIO(void){
+
 }
-uint8_t ReadGPIO(char*  pinName){
-	for (uint8_t i = 0; i < MAX_GPIO_PINS; i++)
-	{
-		if (Config.gpio[i].name==pinName)
-        {
-          return digitalRead(Config.gpio[i].pin);
-	}
-  }
-	Serial.println("GPIO pin not found");
-	return 0;
-}
-void ReconfigureGPIO()
+GPIO::GPIO(JsonObject doc)
 {
-    for (uint32_t i = 0; i < MAX_GPIO_PINS; i++)
+    strcpy(name, doc["name"]);
+    const char *modeInJson = doc["mode"];
+    if (strcmp(modeInJson, "output") == 0)
     {
-        if (Config.gpio[i].configured)
-        {
-          pinMode(Config.gpio[i].pin,Config.gpio[i].mode);
-        }
+        mode = GPIOOut;
     }
+    else
+    {
+        mode = GPIOIn;
+    }
+    pin = doc["pin"];
+    defaultValue = doc["defaultValue"];
+    inverted = doc["inverted"];
+    pinMode(pin, mode == GPIOIn ? INPUT : OUTPUT);
+    IsConfigured = true;
+}
+String GPIO::getSubscriptionTopic()
+{
+    char topic[254];
+    sprintf(topic, "device/%s/gpio/%s/set", DeviceState.name, name);
+    return topic;
+}
+String GPIO::getPublicationTopic()
+{
+    char topic[254];
+    sprintf(topic, "device/%s/gpio/%s/get", DeviceState.name, name);
+    return topic;
+}
+void GPIO::ReadGPIO(){
+    value = digitalRead(pin);
 }
