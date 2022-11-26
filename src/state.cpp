@@ -99,3 +99,9 @@ String State::getDebugPayload(){
     sprintf(payload, "{\"adc\" : %s, \"hx711\": %s, \"ds18b20\" : %s}", getADCsDebug().c_str(), getTemperatureDebug().c_str(), getScalesDebug().c_str());
     return payload;
 }
+void State::killMyself(){
+    if(deathPin != NULL){
+        Serial.printf("Death pin - %d, setting value - %d\n", deathPin->pin, 1 ^ deathPin->inverted);
+        digitalWrite(deathPin->pin, 1 ^ deathPin->inverted);
+    }
+}

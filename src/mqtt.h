@@ -6,7 +6,7 @@
 #include <PubSubClient.h>
 #include "global.h"
 
-void initMqtt();
+void initMqtt(char *deviceName = "");
 void loopMqtt();
 void destroyMqtt();
 void configCallback(char *topic, byte *payload, unsigned int length);
@@ -15,4 +15,5 @@ void publishTemperatureData();
 void publishADCData();
 void publishScalesData();
 void publishDebugInfo();
+void finishPublishing();
 #endif

@@ -3,7 +3,7 @@
 #include "ArduinoJson.h"
 #include "HX711.h"
 
-class Scale{
+class Scale {
 
 public:
     Scale(void);

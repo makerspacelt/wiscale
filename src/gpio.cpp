@@ -6,6 +6,7 @@ GPIO::GPIO(void){
 }
 GPIO::GPIO(JsonObject doc)
 {
+    // serializeJson(doc, Serial);
     strcpy(name, doc["name"]);
     const char *modeInJson = doc["mode"];
     if (strcmp(modeInJson, "output") == 0)

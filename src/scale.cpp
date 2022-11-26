@@ -16,6 +16,7 @@ Scale::Scale(JsonObject doc){
     IsConfigured = true;
     initScale();
 }
+
 void Scale::initScale(){
     scale.begin(pin_dt, pin_sck, gain);
     scale.power_up();

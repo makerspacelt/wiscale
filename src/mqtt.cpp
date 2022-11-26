@@ -3,21 +3,30 @@
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
-bool initialized;
+bool initialized = false;
 
-void initMqtt(){
+void initMqtt(char *deviceName){
     if(initialized) return;
-    String clientId = WiFi.hostname();
+    String clientId = WiFi.hostname();    
     mqtt.setServer("broker.lan", 1883);
     mqtt.setCallback(configCallback);
     mqtt.setBufferSize(2048); // must set to larger, as by default it is limited to 256
-    if(!mqtt.connect(clientId.c_str())){
-        Serial.printf("Failed to connect to MQTT, state : %d\n", mqtt.state());
+    char lastWillTopic[64];
+    if(strlen(deviceName) > 0){
+        sprintf(lastWillTopic, "device/%s/online", deviceName);
+        if(!mqtt.connect(clientId.c_str(), "", "", lastWillTopic, 1, false, "0")){
+            Serial.printf("Failed to connect to MQTT, state : %d\n", mqtt.state());
+        }
+        mqtt.publish(lastWillTopic, "1");
+        initialized = true;
+    }else{
+        if(!mqtt.connect(clientId.c_str())){
+            Serial.printf("Config failed to connect to MQTT, state : %d\n", mqtt.state());
+        }
     }
     if(mqtt.subscribe((char *)("config/" + clientId).c_str(), 1)){
         Serial.printf("Subscribed to topic: config/%s\n", clientId.c_str());
     }
-    initialized = true;
 }
 void loopMqtt()
 {
@@ -28,7 +37,7 @@ void destroyMqtt()
 {
     mqtt.disconnect();
 }
-void parseGPIOs(JsonArray gpios)
+void parseGPIOs(char *deathPinName, JsonArray gpios)
 {
     if(gpios.size() > MAX_GPIO_PINS){
         Serial.println("Config contains more GPIO pins that HW is compatible for.");
@@ -42,8 +51,13 @@ void parseGPIOs(JsonArray gpios)
         if (gpio.mode == GPIOOut)
         {
             String subTopic = gpio.getSubscriptionTopic();
-            //Serial.printf("Subscribing to topic: %s\n", subTopic.c_str());
+            Serial.printf("Subscribing to topic: %s\n", subTopic.c_str());
             mqtt.subscribe(subTopic.c_str(), 1);
+        }
+        if(strlen(deathPinName) > 0 && strcmp(deathPinName, gpio.name) == 0){
+            DeviceState.deathPin = &DeviceState.GPIOs[i];
+            digitalWrite(gpio.pin, gpio.defaultValue ^ gpio.inverted);
+            Serial.printf("DeathPin assigned - %s\n", DeviceState.deathPin->name);
         }
     }
 }
@@ -63,7 +77,7 @@ void parseTempSensors(JsonArray sensors)
 }
 void parseADCs(JsonArray adcs)
 {
-    serializeJson(adcs, Serial);
+    // serializeJson(adcs, Serial);
     if (adcs.size() > MAX_ADC_PINS)
     {
         Serial.println("Config contains more ADC pins that HW is compatible for.");
@@ -78,7 +92,6 @@ void parseADCs(JsonArray adcs)
 }
 void parseScales(JsonArray scales)
 {
-    serializeJson(scales, Serial);
     if (scales.size() > MAX_SCALES)
     {
         Serial.println("Config contains more scales that HW is compatible for.");
@@ -94,7 +107,8 @@ void parseScales(JsonArray scales)
 void parseConfig(byte *payload){
     StaticJsonDocument<MAX_JSON_DOCUMENT_LENGTH> doc;
     DeserializationError error = deserializeJson(doc, payload);
-    // serializeJson(doc, Serial);
+    DeviceState.IsConfigured = false;
+    DeviceState.deathPin = NULL;
     if (error)
     {
         Serial.print(F("deserializeJson() failed: "));
@@ -102,9 +116,25 @@ void parseConfig(byte *payload){
         return;
     }
     strcpy(DeviceState.name, doc["host"]);
-
+    if(!initialized){
+        mqtt.disconnect();
+        mqtt.flush();
+        while(mqtt.state() != -1){
+            delay(10); 
+        }
+        initMqtt(DeviceState.name);
+        return;
+    }
+    char deathPinName[MAX_NAME_LENGTH] = "";
+    if(doc.containsKey("death_pin")){
+        strcpy(deathPinName, doc["death_pin"]);
+    }
+    if(doc.containsKey("loop_delay")){
+        DeviceState.loopDelay = doc["loop_delay"];
+        Serial.printf("Custom loop delay - %d\n", DeviceState.loopDelay);
+    }
 #ifdef USE_GPIO
-    parseGPIOs(doc["gpio"].as<JsonArray>());
+    parseGPIOs(deathPinName, doc["gpio"].as<JsonArray>());
 #endif
 #ifdef USE_DS18
     parseTempSensors(doc["ds18b20"].as<JsonArray>());
@@ -134,9 +164,17 @@ void dealWithOutputs(char *topic, byte *payload)
         }
     }
 }
+void finishPublishing(){
+    if(DeviceState.deathPin != NULL)
+    {
+        Serial.println("Trying to publish death gpio");
+        Serial.println(DeviceState.deathPin->getSubscriptionTopic().c_str());
+        mqtt.publish(DeviceState.deathPin->getSubscriptionTopic().c_str(), "1");
+    }
+}
 void configCallback(char *topic, byte *payload, unsigned int length)
 {
-    Serial.printf("Received MQTT message. Topic: %s\n Payload: %s\n", topic, (char*)payload);
+    Serial.printf("Received MQTT message. Topic: %s\n", topic, (char*)payload);
     if(prefix("config", topic)){
         parseConfig(payload);
         return;

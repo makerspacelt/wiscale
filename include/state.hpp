@@ -8,6 +8,8 @@
 class State{
     public:
         char name[MAX_NAME_LENGTH] = INVALID_NAME;
+        GPIO *deathPin;
+        int loopDelay = 10;
         State();
         bool IsConfigured = false;
         GPIO GPIOs[MAX_GPIO_PINS];
@@ -18,6 +20,7 @@ class State{
         void ReadADCs();
         Scale Scales[MAX_SCALES];
         void ReadWeights();
+        void killMyself();
         String getDebugPublicationTopic();
         String getConfiguredPublicationTopic();
         String getDebugPayload();
