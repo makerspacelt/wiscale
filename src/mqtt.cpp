@@ -1,22 +1,33 @@
 #include "mqtt.h"
 #include "ArduinoJson.h"
-#include "power.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
+bool initialized = false;
 
-void setupMqtt()
-{
-    String clientId = WiFi.hostname();
+void initMqtt(char *deviceName){
+    if(initialized) return;
+    String clientId = WiFi.hostname();    
     mqtt.setServer("broker.lan", 1883);
     mqtt.setCallback(configCallback);
     mqtt.setBufferSize(2048); // must set to larger, as by default it is limited to 256
-    mqtt.connect(clientId.c_str());
-    Serial.println("My ID");
-    Serial.println(clientId);
-    mqtt.subscribe((char *)("config/" + clientId).c_str(), 1);
+    char lastWillTopic[64];
+    if(strlen(deviceName) > 0){
+        sprintf(lastWillTopic, "device/%s/online", deviceName);
+        if(!mqtt.connect(clientId.c_str(), "", "", lastWillTopic, 1, false, "0")){
+            Serial.printf("Failed to connect to MQTT, state : %d\n", mqtt.state());
+        }
+        mqtt.publish(lastWillTopic, "1");
+        initialized = true;
+    }else{
+        if(!mqtt.connect(clientId.c_str())){
+            Serial.printf("Config failed to connect to MQTT, state : %d\n", mqtt.state());
+        }
+    }
+    if(mqtt.subscribe((char *)("config/" + clientId).c_str(), 1)){
+        Serial.printf("Subscribed to topic: config/%s\n", clientId.c_str());
+    }
 }
-
 void loopMqtt()
 {
     mqtt.loop();
@@ -26,282 +37,197 @@ void destroyMqtt()
 {
     mqtt.disconnect();
 }
-String getTemperatureJObject(MS_Ds18b20 sensor)
+void parseGPIOs(char *deathPinName, JsonArray gpios)
 {
-    char element[64];
-    sprintf(element, "{\"%s\":\"%f\"}", sensor.config.name, sensor.temperature);
-    return element;
-}
-String getTemperatureData(MS_Ds18b20 sensors[])
-{
-    char element[256];
-    sprintf(element, "\"temperature\" : [");
-    for(uint8_t i = 0; i < USED_TEMPERATURE_SENSORS; i++){
-        strcat(element, getTemperatureJObject(sensors[i]).c_str());
-        if(i < USED_TEMPERATURE_SENSORS - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-String getTemperatureDebugJObject(MS_Ds18b20 sensor)
-{
-    char element[256];
-    sprintf(element, "{\"pre_multi\":\"%f\", \"pre_offset\":\"%f\", \"readings\":\"%d\"}", sensor.debug.pre_multi, sensor.debug.pre_offset, sensor.debug.readings);
-    return element;
-}
-String getTemperatureDebugData(MS_Ds18b20 sensors[])
-{
-    char element[512];
-    sprintf(element, "\"temperature\" : [");
-    for(uint8_t i = 0; i < USED_TEMPERATURE_SENSORS; i++){
-        strcat(element, getTemperatureDebugJObject(sensors[i]).c_str());
-        if(i < USED_TEMPERATURE_SENSORS - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-
-String getScaleJObject(MS_HX711_Scale scale)
-{
-    char element[64];
-    sprintf(element, "{\"%s\":\"%f\"}", scale.config.name, scale.grams);
-    return element;
-}
-String getScaleData(MS_HX711_Scale scales[])
-{
-    char element[256];
-    sprintf(element, "\"scales\" : [");
-    for(uint8_t i = 0; i < USED_SCALES; i++){
-        strcat(element, getScaleJObject(scales[i]).c_str());
-        if(i < USED_SCALES - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-String getScaleDebugJObject(MS_HX711_Scale scale)
-{
-    char element[512];
-    sprintf(element, "{\"readings\":\"%d\", \"gain\":\"%d\", \"pre_offset\":\"%f\", \"pre_multi\":\"%f\"}", 
-    scale.debug.readings, scale.debug.gain, scale.debug.pre_offset, scale.debug.pre_multi);
-    return element;
-}
-String getScaleDebugData(MS_HX711_Scale scales[])
-{
-    char element[1024];
-    sprintf(element, "\"scales\" : [");
-    for(uint8_t i = 0; i < USED_SCALES; i++){
-        strcat(element, getScaleDebugJObject(scales[i]).c_str());
-        if(i < USED_SCALES - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-String getAdcJObject(MS_ADC adc)
-{
-    char element[64];
-    sprintf(element, "{\"%s\":\"%f\"}", adc.config.name, adc.voltage);
-    return element;
-}
-String getAdcData(MS_ADC adcs[])
-{
-    char element[256];
-    sprintf(element, "\"adc\" : [");
-    for(uint8_t i = 0; i < USED_ADC_PINS; i++){
-        strcat(element, getAdcJObject(adcs[i]).c_str());
-        if(i < USED_ADC_PINS - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-String getAdcDebugJObject(MS_ADC adc)
-{
-    char element[256];
-    sprintf(element, "{\"readings\":\"%d\", \"pre_offset\":\"%f\", \"pre_multi\":\"%f\"}", adc.debug.readings, adc.debug.pre_offset, adc.debug.pre_multi);
-    return element;
-}
-String getAdcDebugData(MS_ADC adcs[])
-{
-    char element[512];
-    sprintf(element, "\"adc\" : [");
-    for(uint8_t i = 0; i < USED_ADC_PINS; i++){
-        strcat(element, getAdcDebugJObject(adcs[i]).c_str());
-        if(i < USED_ADC_PINS - 1)
-            strcat(element, ",");
-    }
-    strcat(element, "]");
-    return element;
-}
-String getMqttMsg(){
-    char element[1024];
-    sprintf(element, "{\"host\":\"%s\",%s,\"configured\":%d,\"charging\":%d, %s, %s}", 
-    Config.name,  getAdcData(State.Adcs).c_str(), State.Configured, State.Charging, getScaleData(State.Scales).c_str(), getTemperatureData(State.Thermometers).c_str());
-    return element;
-}
-String getMqttDebugMsg(){
-    char element[1024];
-    sprintf(element, "{\"host\":\"%s\", %s, %s, %s}", Config.name, getTemperatureDebugData(State.Thermometers).c_str(), getAdcDebugData(State.Adcs).c_str(), getScaleDebugData(State.Scales).c_str());
-    return element;
-}
-void sendMessage()
-{
-    if (mqtt.connected())
-    {
-        char topic[64];
-        sprintf(topic, "device/%s/data", Config.name);
-        mqtt.publish(topic, getMqttMsg().c_str(), false);
-    }
-}
-void sendDebugMessage(){
-    if (mqtt.connected())
-    {
-        char topic[64];
-        sprintf(topic, "device/%s/debug", Config.name);
-        mqtt.publish(topic, getMqttDebugMsg().c_str(), false);
-    }
-}
-
-void ParseGPIOConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
-{
-    Serial.println("Parsing GPIO config");
-    JsonArray array = doc["gpio"].as<JsonArray>();
-
-    if (array.size() > MAX_GPIO_PINS)
-    {
-        Serial.println("Too many pins provided in GPIO config!");
+    if(gpios.size() > MAX_GPIO_PINS){
+        Serial.println("Config contains more GPIO pins that HW is compatible for.");
         return;
     }
-
-    for (uint8_t i = 0; i < array.size(); i++)
+    for (uint8_t i = 0; i < gpios.size(); i++)
     {
-        const char *name = array[i]["name"];
-        strcpy(Config.gpio[i].name, name);
-        Config.gpio[i].defaultValue = array[i]["default"];
-        Config.gpio[i].inverted = array[i]["invert"];
-        Config.gpio[i].mode = array[i]["mode"];
-        Config.gpio[i].pin = array[i]["pin"];
-        Config.gpio[i].configured = 1;
+        JsonObject config = gpios[i];
+        GPIO gpio = GPIO(config);
+        DeviceState.GPIOs[i] = gpio;
+        if (gpio.mode == GPIOOut)
+        {
+            String subTopic = gpio.getSubscriptionTopic();
+            Serial.printf("Subscribing to topic: %s\n", subTopic.c_str());
+            mqtt.subscribe(subTopic.c_str(), 1);
+        }
+        if(strlen(deathPinName) > 0 && strcmp(deathPinName, gpio.name) == 0){
+            DeviceState.deathPin = &DeviceState.GPIOs[i];
+            digitalWrite(gpio.pin, gpio.defaultValue ^ gpio.inverted);
+            Serial.printf("DeathPin assigned - %s\n", DeviceState.deathPin->name);
+        }
     }
 }
-void ParseADCConfig(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+void parseTempSensors(JsonArray sensors)
 {
-    Serial.println("Parsing adc config");
-    JsonArray array = doc["adc"].as<JsonArray>();
-    char msg[5];
-    sprintf(msg, "Found adc sensors%d", array.size());
-    Serial.println(msg);
-    for (uint8_t i = 0; i < array.size(); i++)
+    if (sensors.size() > MAX_TEMP_SENSORS)
     {
-        JsonObject json = array[i];
-        ADCConfig adcConfig = {};
-        const char *name = json["name"];
-        const char *mode = json["mode"];
-        Serial.println(name);
-        strcpy(adcConfig.name, name);
-        strcpy(adcConfig.mode, mode);
-        adcConfig.pin = json["pin"];
-        adcConfig.offset = json["offset"];
-        adcConfig.readings = json["readings"];
-        adcConfig.multi = json["multi"];
-        Config.adc[i] = adcConfig;
+        Serial.println("Config contains more Temperature pins that HW is compatible for.");
+        return;
+    }
+    for (uint8_t i = 0; i < sensors.size(); i++)
+    {
+        JsonObject config = sensors[i];
+        Temperature sensor = Temperature(config);
+        DeviceState.Sensors[i] = sensor;
     }
 }
-/// @brief Gets first JSon object from array. Can be used  only if there is a single element.
-/// @param deviceName
-/// @param doc
-/// @return
-JsonObject getDeviceConfig(char *deviceName, StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+void parseADCs(JsonArray adcs)
 {
-    JsonObject json = doc[deviceName].as<JsonArray>()[0];
-    return json;
-}
-
-void parseHx711Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
-{
-    Serial.println("Parsing scale sensor config");
-    JsonArray array = doc["hx711"].as<JsonArray>();
-    char msg[5];
-    sprintf(msg, "Found scale sensors %d", array.size());
-    Serial.println(msg);
-    for (uint8_t i = 0; i < array.size(); i++)
+    // serializeJson(adcs, Serial);
+    if (adcs.size() > MAX_ADC_PINS)
     {
-        JsonObject json = array[i];
-        Hx711Config scaleConfig = {};
-        const char *name = json["name"];
-        Serial.println(name);
-        strcpy(scaleConfig.name, name);
-        scaleConfig.pin_sck = json["pin_sck"];
-        scaleConfig.pin_dt = json["pin_dt"];
-        scaleConfig.gain = json["gain"];
-        scaleConfig.offset = json["offset"];
-        scaleConfig.multi = json["multi"];
-        scaleConfig.readings = json["readings"];
-        Config.scales[i] = scaleConfig;
+        Serial.println("Config contains more ADC pins that HW is compatible for.");
+        return;
+    }
+    for (uint8_t i = 0; i < adcs.size(); i++)
+    {
+        JsonObject config = adcs[i];
+        ADC adc = ADC(config);
+        DeviceState.ADCs[i] = adc;
     }
 }
-void parseDs18b20Config(StaticJsonDocument<JSON_BUFFER_SIZE> doc)
+void parseScales(JsonArray scales)
 {
-    Serial.println("Parsing tempreture sensor config");
-    JsonArray array = doc["ds18b20"].as<JsonArray>();
-    char msg[5];
-    sprintf(msg, "Found temperature sensors%d", array.size());
-    Serial.println(msg);
-    for (uint8_t i = 0; i < array.size(); i++)
+    if (scales.size() > MAX_SCALES)
     {
-        JsonObject json = array[i];
-        Ds18b20Config thermometerConfig = {};
-        const char *name = json["name"];
-        Serial.println(name);
-        strcpy(thermometerConfig.name, name);
-        thermometerConfig.pin = json["pin"];
-        thermometerConfig.offset = json["offset"];
-        thermometerConfig.multi = json["multi"];
-        Config.thermometers[i] = thermometerConfig;
+        Serial.println("Config contains more scales that HW is compatible for.");
+        return;
+    }
+    for (uint8_t i = 0; i < scales.size(); i++)
+    {
+        JsonObject config = scales[i];
+        Scale scale = Scale(config);
+        DeviceState.Scales[i] = scale;
     }
 }
-
-void configCallback(char *topic, byte *payload, unsigned int length)
-{
-    if (State.Configured == 1)
-    {
-        Serial.println("New config received. Restart");
-        restart();
-    }
-    Serial.println("Received from topic");
-    StaticJsonDocument<JSON_BUFFER_SIZE> doc;
+void parseConfig(byte *payload){
+    StaticJsonDocument<MAX_JSON_DOCUMENT_LENGTH> doc;
     DeserializationError error = deserializeJson(doc, payload);
-    serializeJson(doc, Serial);
+    DeviceState.IsConfigured = false;
+    DeviceState.deathPin = NULL;
     if (error)
     {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.f_str());
         return;
     }
-    // Get hostname
-    strcpy(Config.name, doc["host"]);
-
-// Get gpio config
+    strcpy(DeviceState.name, doc["host"]);
+    if(!initialized){
+        mqtt.disconnect();
+        mqtt.flush();
+        while(mqtt.state() != -1){
+            delay(10); 
+        }
+        initMqtt(DeviceState.name);
+        return;
+    }
+    char deathPinName[MAX_NAME_LENGTH] = "";
+    if(doc.containsKey("death_pin")){
+        strcpy(deathPinName, doc["death_pin"]);
+    }
+    if(doc.containsKey("loop_delay")){
+        DeviceState.loopDelay = doc["loop_delay"];
+        Serial.printf("Custom loop delay - %d\n", DeviceState.loopDelay);
+    }
 #ifdef USE_GPIO
-    ParseGPIOConfig(doc);
-#endif // USE_GPIO
-
-#ifdef USE_ADC
-
-    ParseADCConfig(doc);
-#endif // USE_ADC
-
-#ifdef USE_SCALE
-
-    parseHx711Config(doc);
-#endif // USE_SCALE
-
+    parseGPIOs(deathPinName, doc["gpio"].as<JsonArray>());
+#endif
 #ifdef USE_DS18
-    parseDs18b20Config(doc);
-#endif // USE_DS18
+    parseTempSensors(doc["ds18b20"].as<JsonArray>());
+#endif
+#ifdef USE_ADC
+    parseADCs(doc["adc"].as<JsonArray>());
+#endif
+#ifdef USE_SCALE
+    parseScales(doc["hx711"].as<JsonArray>());
+#endif
+    DeviceState.IsConfigured = true;
+}
 
-    State.Configured = 1;
+void dealWithOutputs(char *topic, byte *payload)
+{
+    for(uid_t i = 0; i < MAX_GPIO_PINS; i++){
+        GPIO gpio = DeviceState.GPIOs[i];
+        if (!gpio.IsConfigured)
+            continue;
+        if (strcmp(topic, gpio.getSubscriptionTopic().c_str()) == 0)
+        {
+            int val = ((char)payload[0] == '1' ? 1 : 0) ^ gpio.inverted;
+            digitalWrite(gpio.pin, val);
+            char publishPayload[1];
+            sprintf(publishPayload, "%d", val ^ gpio.inverted);
+            mqtt.publish(gpio.getPublicationTopic().c_str(), publishPayload, RetainPublications);
+        }
+    }
+}
+void finishPublishing(){
+    if(DeviceState.deathPin != NULL)
+    {
+        Serial.println("Trying to publish death gpio");
+        Serial.println(DeviceState.deathPin->getSubscriptionTopic().c_str());
+        mqtt.publish(DeviceState.deathPin->getSubscriptionTopic().c_str(), "1");
+    }
+}
+void configCallback(char *topic, byte *payload, unsigned int length)
+{
+    Serial.printf("Received MQTT message. Topic: %s\n", topic, (char*)payload);
+    if(prefix("config", topic)){
+        parseConfig(payload);
+        return;
+    }
+    dealWithOutputs(topic, payload);
+}
+void publishGPIOData(){
+    for(uint8_t i = 0; i < MAX_GPIO_PINS; i++){
+        GPIO gpio = DeviceState.GPIOs[i];
+        if(!gpio.IsConfigured || gpio.mode != GPIOIn) continue;
+        char payload[10];
+        sprintf(payload, "%d", gpio.value ^ gpio.inverted);
+        mqtt.publish(gpio.getPublicationTopic().c_str(), payload, RetainPublications);
+    }
+}
+void publishTemperatureData()
+{
+    for (uint8_t i = 0; i < MAX_TEMP_SENSORS; i++)
+    {
+        Temperature sensor = DeviceState.Sensors[i];
+        if (!sensor.IsConfigured)
+            continue;
+        char payload[10];
+        sprintf(payload, "%.2f", sensor.temperature);
+        mqtt.publish(sensor.getPublicationTopic().c_str(), payload, RetainPublications);
+    }
+}
+void publishADCData()
+{
+    for (uint8_t i = 0; i < MAX_ADC_PINS; i++)
+    {
+        ADC adc = DeviceState.ADCs[i];
+        if (!adc.IsConfigured)
+            continue;
+  
+        char payload[10];
+        sprintf(payload, "%.2f", adc.adcValue);
+        mqtt.publish(adc.getPublicationTopic().c_str(), payload, RetainPublications);
+    }
+}
+void publishScalesData(){
+    for (uint8_t i = 0; i < MAX_SCALES; i++)
+    {
+        Scale scale = DeviceState.Scales[i];
+        if (!scale.IsConfigured)
+            continue;
+
+        char payload[10];
+        sprintf(payload, "%.2f", scale.weight);
+        mqtt.publish(scale.getPublicationTopic().c_str(), payload, RetainPublications);
+    }
+}
+void publishDebugInfo(){
+    mqtt.publish(DeviceState.getConfiguredPublicationTopic().c_str(), "1", RetainPublications);
+    mqtt.publish(DeviceState.getDebugPublicationTopic().c_str(), DeviceState.getDebugPayload().c_str(), RetainPublications);
 }
