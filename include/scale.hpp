@@ -15,7 +15,6 @@ public:
     int offset = 185000;
     float multi = 402.8;
     uint8_t readings = 30;
-    float weight = 0;
     float pre_offset = 0;
     float pre_multi = 0;
     bool IsConfigured = false;
@@ -25,6 +24,9 @@ public:
     void ReadWeight();
 
     String getDebugObject();
+    float getWeight();
 private:
+    HX711 scale;
     void initScale();
+    float weight = 0;
 };

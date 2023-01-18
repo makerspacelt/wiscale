@@ -105,6 +105,7 @@ void parseScales(JsonArray scales)
     }
 }
 void parseConfig(byte *payload){
+    DeviceState = State();
     StaticJsonDocument<MAX_JSON_DOCUMENT_LENGTH> doc;
     DeserializationError error = deserializeJson(doc, payload);
     DeviceState.IsConfigured = false;
@@ -198,7 +199,7 @@ void publishTemperatureData()
         if (!sensor.IsConfigured)
             continue;
         char payload[10];
-        sprintf(payload, "%.2f", sensor.temperature);
+        sprintf(payload, "%.3f", sensor.temperature);
         mqtt.publish(sensor.getPublicationTopic().c_str(), payload, RetainPublications);
     }
 }
@@ -211,7 +212,7 @@ void publishADCData()
             continue;
   
         char payload[10];
-        sprintf(payload, "%.2f", adc.adcValue);
+        sprintf(payload, "%.3f", adc.adcValue);
         mqtt.publish(adc.getPublicationTopic().c_str(), payload, RetainPublications);
     }
 }
@@ -222,8 +223,8 @@ void publishScalesData(){
         if (!scale.IsConfigured)
             continue;
 
-        char payload[10];
-        sprintf(payload, "%.2f", scale.weight);
+        char payload[128];
+        sprintf(payload, "%.3f", scale.getWeight());
         mqtt.publish(scale.getPublicationTopic().c_str(), payload, RetainPublications);
     }
 }

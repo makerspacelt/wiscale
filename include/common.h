@@ -3,6 +3,6 @@
 #define MAX_MODE_LENGTH 50
 #define MAX_JSON_DOCUMENT_LENGTH 2048
 #define MAX_GPIO_PINS 5
-#define MAX_TEMP_SENSORS 5
-#define MAX_ADC_PINS 5
-#define MAX_SCALES 5
+#define MAX_TEMP_SENSORS 2
+#define MAX_ADC_PINS 1
+#define MAX_SCALES 3

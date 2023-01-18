@@ -51,7 +51,7 @@ String State::getConfiguredPublicationTopic()
     return topic;
 }
 String State::getADCsDebug(){
-    char result[254];
+    char result[254 * MAX_ADC_PINS];
     sprintf(result, "[");
     for(uint8_t i = 0; i < MAX_ADC_PINS; i++){
         ADC *adc = &ADCs[i];
@@ -65,7 +65,7 @@ String State::getADCsDebug(){
     return result;
 }
 String State::getTemperatureDebug(){
-    char result[254];
+    char result[254 * MAX_TEMP_SENSORS];
     sprintf(result, "[");
     for (uint8_t i = 0; i < MAX_TEMP_SENSORS; i++)
     {
@@ -80,7 +80,7 @@ String State::getTemperatureDebug(){
     return result;
 }
 String State::getScalesDebug(){
-    char result[254];
+    char result[254 * MAX_SCALES];
     sprintf(result, "[");
     for (uint8_t i = 0; i < MAX_SCALES; i++)
     {
@@ -95,8 +95,8 @@ String State::getScalesDebug(){
     return result;
 }
 String State::getDebugPayload(){
-    char payload[1024];
-    sprintf(payload, "{\"adc\" : %s, \"hx711\": %s, \"ds18b20\" : %s}", getADCsDebug().c_str(), getTemperatureDebug().c_str(), getScalesDebug().c_str());
+    char payload[254 * MAX_ADC_PINS + 254 * MAX_TEMP_SENSORS + 254 * MAX_SCALES];
+    sprintf(payload, "{\"adc\" : %s, \"temp\": %s, \"scales\" : %s}", getADCsDebug().c_str(), getTemperatureDebug().c_str(), getScalesDebug().c_str());
     return payload;
 }
 void State::killMyself(){
