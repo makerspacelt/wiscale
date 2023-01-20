@@ -13,7 +13,7 @@ void initMqtt(char *deviceName){
     mqtt.setBufferSize(2048); // must set to larger, as by default it is limited to 256
     char lastWillTopic[64];
     if(strlen(deviceName) > 0){
-        sprintf(lastWillTopic, "device/%s/online", deviceName);
+        sprintf(lastWillTopic, "device/%s/system/online/get", deviceName);
         if(!mqtt.connect(clientId.c_str(), "", "", lastWillTopic, 1, false, "0")){
             Serial.printf("Failed to connect to MQTT, state : %d\n", mqtt.state());
         }
