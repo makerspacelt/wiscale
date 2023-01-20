@@ -47,7 +47,7 @@ String State::getDebugPublicationTopic()
 String State::getConfiguredPublicationTopic()
 {
     char topic[254];
-    sprintf(topic, "device/%s/configured", name);
+    sprintf(topic, "device/%s/system/configured/get", name);
     return topic;
 }
 String State::getADCsDebug(){
