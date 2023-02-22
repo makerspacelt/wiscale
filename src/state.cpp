@@ -47,11 +47,11 @@ String State::getDebugPublicationTopic()
 String State::getConfiguredPublicationTopic()
 {
     char topic[254];
-    sprintf(topic, "device/%s/configured", name);
+    sprintf(topic, "device/%s/system/configured/get", name);
     return topic;
 }
 String State::getADCsDebug(){
-    char result[254];
+    char result[254 * MAX_ADC_PINS];
     sprintf(result, "[");
     for(uint8_t i = 0; i < MAX_ADC_PINS; i++){
         ADC *adc = &ADCs[i];
@@ -65,7 +65,7 @@ String State::getADCsDebug(){
     return result;
 }
 String State::getTemperatureDebug(){
-    char result[254];
+    char result[254 * MAX_TEMP_SENSORS];
     sprintf(result, "[");
     for (uint8_t i = 0; i < MAX_TEMP_SENSORS; i++)
     {
@@ -80,7 +80,7 @@ String State::getTemperatureDebug(){
     return result;
 }
 String State::getScalesDebug(){
-    char result[254];
+    char result[254 * MAX_SCALES];
     sprintf(result, "[");
     for (uint8_t i = 0; i < MAX_SCALES; i++)
     {

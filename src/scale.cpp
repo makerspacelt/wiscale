@@ -1,7 +1,7 @@
 #include "global.h"
 #include "scale.hpp"
 
-HX711 scale;
+
 Scale::Scale(void){
 
 }
@@ -17,7 +17,9 @@ Scale::Scale(JsonObject doc){
     IsConfigured = true;
     initScale();
 }
-
+float Scale::getWeight(){
+    return weight;
+}
 void Scale::initScale(){
     scale.begin(pin_dt, pin_sck, gain);
     scale.power_up();
@@ -65,6 +67,7 @@ void Scale::ReadWeight()
     pre_multi = grams;
     grams *= multi;
     weight = grams;
+    Serial.printf("Scale %s, weight: %.3f", name, weight);
 }
 String Scale::getDebugObject(){
     char result[254];

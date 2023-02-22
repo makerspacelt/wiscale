@@ -28,10 +28,6 @@ void Temperature::initializeSensor(){
     {
         Serial.println("Error: Could not read temperature data");
     }
-    else
-    {
-        Serial.println("Temperature device found");
-    }
 }
 String Temperature::getSubscriptionTopic()
 {

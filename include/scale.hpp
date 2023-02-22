@@ -28,6 +28,9 @@ public:
     void ReadWeight();
 
     String getDebugObject();
+    float getWeight();
 private:
+    HX711 scale;
     void initScale();
+    float weight = 0;
 };
