@@ -96,7 +96,7 @@ String State::getScalesDebug(){
 }
 String State::getDebugPayload(){
     char payload[1024];
-    sprintf(payload, "{\"adc\" : %s, \"hx711\": %s, \"ds18b20\" : %s}", getADCsDebug().c_str(), getTemperatureDebug().c_str(), getScalesDebug().c_str());
+    sprintf(payload, "{\"adc\" : %s, \"ds18b20\": %s, \"hx711\" : %s, \"uptime\": %d}", getADCsDebug().c_str(), getTemperatureDebug().c_str(), getScalesDebug().c_str(), millis());
     return payload;
 }
 void State::killMyself(){

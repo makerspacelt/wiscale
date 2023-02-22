@@ -34,6 +34,7 @@
         "pin_sck": 5,
         "pin_dt": 4,
         "gain": 64,
+        "max_scatter": 0.3,
         "readings" : 10,
         "offset": 185000,
         "multi": 402.8

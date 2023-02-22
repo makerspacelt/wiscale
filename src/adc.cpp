@@ -28,7 +28,7 @@ String ADC::getPublicationTopic()
 }
 void ADC::ReadADC()
 {
-    long sum = 0;
+    float sum = 0;
     for(byte i = 0; i < readings; i++){
         sum += analogRead(pin);
         delay(0);

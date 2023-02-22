@@ -16,4 +16,5 @@ void publishADCData();
 void publishScalesData();
 void publishDebugInfo();
 void finishPublishing();
+void publishUptime();
 #endif

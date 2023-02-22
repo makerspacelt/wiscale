@@ -13,6 +13,7 @@ Scale::Scale(JsonObject doc){
     readings = doc["readings"];
     offset = doc["offset"];
     multi = doc["multi"];
+    max_scatter = doc["max_scatter"];
     IsConfigured = true;
     initScale();
 }
@@ -35,12 +36,30 @@ String Scale::getPublicationTopic()
 }
 void Scale::ReadWeight()
 {
+    while(!scale.is_ready()){
+        delay(100);
+    }
+    minRead = 0;
+    maxRead = 0;
     if(readings <= 0)
     {
         Serial.println("Readings less than 1.");
         return;
     }
-    float grams = scale.get_units(readings);
+    float grams = 0;
+    //float grams = scale.get_units(readings);
+    for (size_t i = 0; i < readings; i++)
+    {
+        long value = scale.read();
+        grams += value;
+        if(value < minRead)
+            minRead = value;
+        if(maxRead == 0)
+            maxRead = value;
+        if(value > maxRead)
+            maxRead = value;
+    }
+    grams = grams / readings;
     pre_offset = grams;
     grams += offset;
     pre_multi = grams;
@@ -59,6 +78,10 @@ String Scale::getDebugObject(){
     strcat(result, makeJsonLine("pre_offset", pre_offset).c_str());
     strcat(result, ", ");
     strcat(result, makeJsonLine("pre_multi", pre_multi).c_str());
+    strcat(result, ", ");
+    strcat(result, makeJsonLine("min_read", minRead).c_str());
+    strcat(result, ", ");
+    strcat(result, makeJsonLine("max_read", maxRead).c_str());
     strcat(result, "}");
     return result;
 }

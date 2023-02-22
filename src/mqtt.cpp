@@ -221,10 +221,12 @@ void publishScalesData(){
         Scale scale = DeviceState.Scales[i];
         if (!scale.IsConfigured)
             continue;
-
-        char payload[10];
-        sprintf(payload, "%.2f", scale.weight);
-        mqtt.publish(scale.getPublicationTopic().c_str(), payload, RetainPublications);
+        if(scale.maxRead - scale.minRead <= scale.max_scatter || scale.max_scatter == 0)
+        {
+            char payload[10];
+            sprintf(payload, "%.2f", scale.weight);
+            mqtt.publish(scale.getPublicationTopic().c_str(), payload, RetainPublications);
+        }
     }
 }
 void publishDebugInfo(){
