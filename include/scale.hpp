@@ -32,5 +32,4 @@ public:
 private:
     HX711 scale;
     void initScale();
-    float weight = 0;
 };
